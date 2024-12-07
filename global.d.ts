@@ -5,6 +5,3 @@ declare module "*.lua" {
 }
 
 declare module "lua/lick/lick"
-
-// lua functions
-declare const print: (format: string, ...args: any[]) => void

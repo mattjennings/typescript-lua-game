@@ -16,6 +16,7 @@ export abstract class Entity extends EventEmitter<{
   draw: void
   postdraw: void
 }> {
+  name?: string = "Entity"
   engine?: Engine
   scene?: Scene
 

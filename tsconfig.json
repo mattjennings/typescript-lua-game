@@ -8,13 +8,15 @@
     "moduleResolution": "Node",
     "types": [
       "love-typescript-definitions",
-      "@typescript-to-lua/language-extensions"
+      "@typescript-to-lua/language-extensions",
+      "lua-types/jit"
     ],
     "baseUrl": ".",
     "paths": {
       "lua": ["./lua/*"]
     }
   },
+
   "tstl": {
     "luaTarget": "JIT",
     "sourceMapTraceback": true,

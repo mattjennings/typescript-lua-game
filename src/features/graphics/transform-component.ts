@@ -8,8 +8,6 @@ export class TransformComponent extends Component {
   y: number = 0
   rotation: number = 0
   scale: number | [number, number] = 1
-  origin: [number, number] = [0, 0]
-  shear: [number, number] = [0, 0]
 
   constructor(
     entity: Entity,
@@ -18,8 +16,6 @@ export class TransformComponent extends Component {
       y?: number
       rotation?: number
       scale?: number | [number, number]
-      origin?: [number, number]
-      shear?: [number, number]
     }
   ) {
     super(entity)
@@ -38,14 +34,6 @@ export class TransformComponent extends Component {
 
     if (args.scale || args.scale === 0) {
       this.scale = args.scale
-    }
-
-    if (args.origin) {
-      this.origin = args.origin
-    }
-
-    if (args.shear) {
-      this.shear = args.shear
     }
   }
 }

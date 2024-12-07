@@ -20,7 +20,11 @@ export class EventEmitter<
   }
 
   emit<K extends keyof Events>(event: K, payload: Events[K]) {
-    for (const listener of this.listeners[event] ?? []) {
+    if (!this.listeners[event]) {
+      return
+    }
+
+    for (const listener of this.listeners[event]) {
       listener(payload)
     }
   }

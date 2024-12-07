@@ -24,7 +24,7 @@ export class SystemQuery extends EventEmitter<{
     this.dirty = true
   }
 
-  get(scene: Scene) {
+  getEntities(scene: Scene) {
     if (!this.dirty || !this.components) {
       return this.entities
     }

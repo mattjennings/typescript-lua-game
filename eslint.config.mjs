@@ -14,6 +14,7 @@ export default tseslint.config(
       "prefer-const": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-this-alias": "off",
+      "@typescript-eslint/no-empty-object-type": "off",
       // important for lua
       "@typescript-eslint/no-use-before-define": "error",
     },

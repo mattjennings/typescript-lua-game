@@ -20,11 +20,15 @@ export class Engine<
   TSceneKey extends string = string,
   TEngine extends EngineDefinition<TSceneKey> = EngineDefinition<TSceneKey>
 > extends EventEmitter<{
+  update: { dt: number }
+  draw: void
   scenechange: { name: EngineScene<TEngine>; scene: Scene }
 }> {
   systems: System[] = []
   scenes: Record<EngineScene<TEngine>, Scene> = {} as any
   currentScene!: Scene
+
+  elapsedTime = 0
 
   paused = false
   started = false
@@ -67,6 +71,8 @@ export class Engine<
 
   update(args: { dt: number }) {
     if (!this.paused) {
+      this.emit("update", args)
+      this.elapsedTime += args.dt
       for (const entity of this.currentScene.entities) {
         entity.onPreUpdate(args)
         entity.emit("preupdate", args)
@@ -78,7 +84,7 @@ export class Engine<
       }
 
       for (const system of this.systems) {
-        system.update(args, system.query.get(this.currentScene))
+        system.update(args, system.query.getEntities(this.currentScene))
       }
 
       for (const entity of this.currentScene.entities) {
@@ -90,6 +96,7 @@ export class Engine<
 
   draw() {
     if (!this.paused) {
+      this.emit("draw", undefined)
       for (const entity of this.currentScene.entities) {
         entity.onPreDraw()
         entity.emit("predraw", undefined)
@@ -101,7 +108,7 @@ export class Engine<
       }
 
       for (const system of this.systems) {
-        system.draw(system.query.get(this.currentScene))
+        system.draw(system.query.getEntities(this.currentScene))
       }
 
       for (const entity of this.currentScene.entities) {
@@ -115,10 +122,12 @@ export class Engine<
     this.systems.push(system)
     system.engine = this
 
-    this.systems.sort(
-      // @ts-ignore
-      (a, b) => b.constructor["priority"] - a.constructor["priority"]
-    )
+    this.systems.sort((a, b) => {
+      const aPriority = a.constructor["priority"] ?? 0
+      const bPriority = b.constructor["priority"] ?? 0
+
+      return bPriority - aPriority
+    })
   }
 
   removeSystem(system: System) {
@@ -190,5 +199,21 @@ export class Engine<
     }
 
     return ctor
+  }
+
+  timer = {
+    wait: (s: number) => {
+      return new Promise<void>((resolve) => {
+        const onupdate = ({ dt }: { dt: number }) => {
+          s -= dt
+          if (s <= 0) {
+            this.off("update", onupdate)
+            resolve()
+          }
+        }
+
+        this.on("update", onupdate)
+      })
+    },
   }
 }

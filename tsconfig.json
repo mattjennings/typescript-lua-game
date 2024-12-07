@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TypeScriptToLua/TypeScriptToLua/master/tsconfig-schema.json",
+
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "moduleResolution": "Node",
+    "types": [
+      "love-typescript-definitions",
+      "@typescript-to-lua/language-extensions"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "lua": ["./lua/*"]
+    }
+  },
+  "tstl": {
+    "luaTarget": "JIT",
+
+    "luaPlugins": [{ "name": "./plugins/copy-res.ts" }]
+  },
+  "include": [
+    "main.ts",
+    "src/**/*.ts",
+    "lua/**/*.ts",
+    "res/**/*",
+    "global.d.ts"
+  ]
+}

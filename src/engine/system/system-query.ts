@@ -1,9 +1,8 @@
-import { Engine } from "./engine"
-import { Entity, UpdateEvent } from "./entity"
-import { EventEmitter } from "./event-emitter"
-import { Component } from "./component"
-import { Scene } from "./scene"
 import { ConstructorOf } from "src/types"
+import { Component } from "../component"
+import { Entity } from "../entity"
+import { EventEmitter } from "../event-emitter"
+import { Scene } from "../scene"
 
 export class SystemQuery extends EventEmitter<{
   entityadd: Entity
@@ -62,26 +61,4 @@ export class SystemQuery extends EventEmitter<{
     this.dirty = false
     return this.entities
   }
-}
-
-export class System extends EventEmitter<{
-  entityadd: Entity
-  entityremoved: Entity
-}> {
-  static priority: number
-  engine!: Engine
-
-  query = new SystemQuery([])
-
-  async init() {
-    this.query.on("entityadd", this.onEntityAdd)
-    this.query.on("entityremoved", this.onEntityRemove)
-  }
-
-  update(event: UpdateEvent, entities: Set<Entity>) {}
-
-  draw(entities: Set<Entity>) {}
-
-  onEntityAdd = (entity: Entity) => {}
-  onEntityRemove = (entity: Entity) => {}
 }

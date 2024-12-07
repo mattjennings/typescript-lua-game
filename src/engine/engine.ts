@@ -2,6 +2,7 @@ import { ConstructorOf } from "src/types"
 import { EventEmitter } from "./event-emitter"
 import { Scene } from "./scene"
 import { System } from "./system"
+import { Entity } from "./entity"
 
 export interface EngineArgs<TSceneKey extends string> {
   systems: System[]
@@ -88,8 +89,25 @@ export class Engine<
   }
 
   draw() {
-    for (const system of this.systems) {
-      system.draw(system.query.get(this.currentScene))
+    if (!this.paused) {
+      for (const entity of this.currentScene.entities) {
+        entity.onPreDraw()
+        entity.emit("predraw", undefined)
+      }
+
+      for (const entity of this.currentScene.entities) {
+        entity.onDraw()
+        entity.emit("draw", undefined)
+      }
+
+      for (const system of this.systems) {
+        system.draw(system.query.get(this.currentScene))
+      }
+
+      for (const entity of this.currentScene.entities) {
+        entity.onPostDraw()
+        entity.emit("postdraw", undefined)
+      }
     }
   }
 
@@ -154,5 +172,23 @@ export class Engine<
     for (const system of this.systems) {
       system.query.invalidate()
     }
+  }
+
+  get Scene() {
+    const _engine = this as Engine<TSceneKey>
+    const ctor = class extends Scene {
+      engine = _engine
+    }
+
+    return ctor
+  }
+
+  get Entity() {
+    const _engine = this as Engine<TSceneKey>
+    const ctor = class extends Entity {
+      engine = _engine
+    }
+
+    return ctor
   }
 }

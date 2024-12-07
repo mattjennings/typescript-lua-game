@@ -1,3 +1,4 @@
+import { Engine } from "../engine"
 import { EventEmitter } from "../event-emitter"
 import { Scene } from "../scene"
 import { ComponentRegistry } from "./component-registry"
@@ -11,16 +12,23 @@ export abstract class Entity extends EventEmitter<{
   preupdate: UpdateEvent
   update: UpdateEvent
   postupdate: UpdateEvent
+  predraw: void
+  draw: void
+  postdraw: void
 }> {
+  engine?: Engine
   scene?: Scene
 
   components = new ComponentRegistry(this)
 
   onPreUpdate = (args: UpdateEvent) => {}
-
   onUpdate = (args: UpdateEvent) => {}
-
   onPostUpdate = (args: UpdateEvent) => {}
+
+  onPreDraw = () => {}
+  onDraw = () => {}
+  onPostDraw = () => {}
+
   /**
    * Removes the entity from the scene but does not destroy it.
    */

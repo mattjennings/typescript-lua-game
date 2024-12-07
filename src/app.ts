@@ -1,8 +1,6 @@
 import { GraphicsComponent } from "./components/graphics-component"
 import { TransformComponent } from "./components/transform-component"
-import { Engine } from "./engine/engine"
-import { Entity } from "./engine/entity"
-import { Scene } from "./engine/scene"
+import { Engine } from "./engine"
 import { res } from "./res"
 import { GraphicsSystem } from "./systems/graphics-system"
 
@@ -12,16 +10,16 @@ export const engine = new Engine({
     scenes: "level1",
   },
 })
-
-class Player extends Entity {
+class Player extends engine.Entity {
   constructor() {
     super()
+
     this.components.add(new GraphicsComponent(this, res.images.player))
     this.components.add(new TransformComponent(this, { x: 100, y: 100 }))
   }
 }
 
-class Level1 extends Scene {
+class Level1 extends engine.Scene {
   constructor() {
     super()
 

@@ -13,6 +13,7 @@ export default tseslint.config(
       "@typescript-eslint/no-empty-function": "off",
       "prefer-const": "off",
       "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-this-alias": "off",
       // important for lua
       "@typescript-eslint/no-use-before-define": "error",
     },

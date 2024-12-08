@@ -4,7 +4,7 @@ import { Entity } from "./entity"
 
 export class ComponentRegistry {
   entity: Entity
-  private components: Map<string, Component<any>> = new Map()
+  private components = new LuaMap<string, Component<any>>()
 
   constructor(entity: Entity) {
     this.entity = entity
@@ -52,13 +52,13 @@ export class ComponentRegistry {
   }
 
   destroy() {
-    for (const component of this.components.values()) {
+    for (const [key, component] of this.components) {
       this.remove(component)
     }
   }
 
   *[Symbol.iterator]() {
-    for (const component of this.components.values()) {
+    for (const [key, component] of this.components) {
       yield component
     }
   }

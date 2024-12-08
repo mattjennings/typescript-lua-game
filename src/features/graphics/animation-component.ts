@@ -41,18 +41,6 @@ export class AnimationComponent<Key extends string> extends Component<{
     this.spritesheet = args.spritesheet
     this.animations = args.animations
     this.currentAnimationKey = args.initial
-
-    this.on("animationend", (key) => {
-      print(`Animation ${key} ended`)
-    })
-
-    this.on("animationstart", (key) => {
-      print(`Animation ${key} started`)
-    })
-
-    this.on("animationloop", (key) => {
-      print(`Animation ${key} looped`)
-    })
   }
 
   get currentAnimation() {

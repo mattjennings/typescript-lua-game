@@ -2,12 +2,12 @@ export class EventEmitter<
   Events extends Record<string, unknown> = Record<string, unknown>
 > {
   listeners: Partial<
-    Record<keyof Events, Set<(payload: Events[keyof Events]) => void>>
+    Record<keyof Events, LuaSet<(payload: Events[keyof Events]) => void>>
   > = {}
 
   on<K extends keyof Events>(event: K, listener: (payload: Events[K]) => void) {
     if (!this.listeners[event]) {
-      this.listeners[event] = new Set()
+      this.listeners[event] = new LuaSet()
     }
     this.listeners[event]!.add(listener)
   }

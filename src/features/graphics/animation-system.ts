@@ -6,7 +6,7 @@ import { GraphicsComponent } from "./graphics-component"
 export class AnimationSystem extends System {
   query = new SystemQuery([AnimationComponent, GraphicsComponent])
 
-  update(event: UpdateEvent, entities: Set<Entity>): void {
+  update(event: UpdateEvent, entities: LuaSet<Entity>): void {
     for (const entity of entities) {
       const animation = entity.components.get(AnimationComponent)!
       const graphics = entity.components.get(GraphicsComponent)

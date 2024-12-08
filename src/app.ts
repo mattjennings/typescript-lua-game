@@ -1,4 +1,4 @@
-import { Engine } from "./engine"
+import { Component, Engine } from "./engine"
 import { res } from "./res"
 import {
   GraphicsSystem,
@@ -8,7 +8,6 @@ import {
 } from "./features/graphics"
 import { AnimationComponent } from "./features/graphics/animation-component"
 import { AnimationSystem } from "./features/graphics/animation-system"
-import { sleep } from "love.timer"
 
 export const engine = new Engine({
   systems: [new AnimationSystem(), new GraphicsSystem()],
@@ -39,21 +38,27 @@ class Player extends engine.Entity {
     initial: "run",
   })
 
-  constructor() {
+  constructor(x: number, y: number) {
     super()
 
-    this.components.add(
-      new TransformComponent(this, { x: 100, y: 100, scale: 10 })
-    )
+    this.components.add(new TransformComponent(this, { x: x, y: y, scale: 1 }))
   }
 }
 
 class Level1 extends engine.Scene {
+  a = []
   constructor() {
     super()
 
-    let player = new Player()
-    this.entities.add(player)
+    const [x, y, width, height] = love.window.getSafeArea()
+
+    print(`Safe area: ${x}x${y} ${width}x${height}`)
+
+    for (let i = 0; i < 10000; i++) {
+      const px = love.math.random(0, width)
+      const py = love.math.random(0, height)
+      this.entities.add(new Player(px, py))
+    }
   }
 
   onStart(): void {

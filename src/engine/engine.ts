@@ -73,48 +73,14 @@ export class Engine<
     if (!this.paused) {
       this.emit("update", args)
       this.elapsedTime += args.dt
-      for (const entity of this.currentScene.entities) {
-        entity.onPreUpdate(args)
-        entity.emit("preupdate", args)
-      }
-
-      for (const entity of this.currentScene.entities) {
-        entity.onUpdate(args)
-        entity.emit("update", args)
-      }
-
-      for (const system of this.systems) {
-        system.update(args, system.query.getEntities(this.currentScene))
-      }
-
-      for (const entity of this.currentScene.entities) {
-        entity.onPostUpdate(args)
-        entity.emit("postupdate", args)
-      }
+      this.currentScene.update(args)
     }
   }
 
   draw() {
     if (!this.paused) {
       this.emit("draw", undefined)
-      for (const entity of this.currentScene.entities) {
-        entity.onPreDraw()
-        entity.emit("predraw", undefined)
-      }
-
-      for (const entity of this.currentScene.entities) {
-        entity.onDraw()
-        entity.emit("draw", undefined)
-      }
-
-      for (const system of this.systems) {
-        system.draw(system.query.getEntities(this.currentScene))
-      }
-
-      for (const entity of this.currentScene.entities) {
-        entity.onPostDraw()
-        entity.emit("postdraw", undefined)
-      }
+      this.currentScene.draw()
     }
   }
 
@@ -187,6 +153,7 @@ export class Engine<
     const _engine = this as Engine<TSceneKey>
     const ctor = class extends Scene {
       engine = _engine
+      systems = _engine.systems
     }
 
     return ctor

@@ -8,7 +8,7 @@ export class SystemQuery extends EventEmitter<{
   entityadd: Entity
   entityremoved: Entity
 }> {
-  entities: Set<Entity> = new Set()
+  entities = new LuaSet<Entity>()
 
   private dirty: boolean = true
   private components: ConstructorOf<Component>[] | null = null
@@ -31,7 +31,9 @@ export class SystemQuery extends EventEmitter<{
 
     const previousEntities = new Set(this.entities)
 
-    this.entities.clear()
+    for (const e of this.entities) {
+      this.entities.delete(e)
+    }
 
     for (const entity of scene.entities) {
       let satisfiesQuery = true

@@ -7,9 +7,7 @@ import { System, SystemQuery } from "src/engine/system"
 export class GraphicsSystem extends System {
   query = new SystemQuery([GraphicsComponent, TransformComponent])
 
-  update(event: UpdateEvent, entities: Set<Entity>): void {}
-
-  draw(entities: Set<Entity>): void {
+  draw(entities: LuaSet<Entity>): void {
     for (const entity of entities) {
       const graphics = entity.components.get(GraphicsComponent)!
       const transform = entity.components.get(TransformComponent)!

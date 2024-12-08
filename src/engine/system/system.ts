@@ -17,9 +17,9 @@ export class System extends EventEmitter<{
     this.query.on("entityremoved", this.onEntityRemove)
   }
 
-  update(event: UpdateEvent, entities: Set<Entity>) {}
+  update(event: UpdateEvent, entities: LuaSet<Entity>) {}
 
-  draw(entities: Set<Entity>) {}
+  draw(entities: LuaSet<Entity>) {}
 
   onEntityAdd = (entity: Entity) => {}
   onEntityRemove = (entity: Entity) => {}

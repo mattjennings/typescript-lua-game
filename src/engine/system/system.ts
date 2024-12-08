@@ -1,26 +1,27 @@
+import { ConstructorOf } from "src/types"
 import { Engine } from "../engine"
 import { Entity, UpdateEvent } from "../entity"
 import { EventEmitter } from "../event-emitter"
-import { SystemQuery } from "./system-query"
 
-export class System extends EventEmitter<{
+import { Component } from "../component"
+
+export class System<
+  T extends Readonly<Component[]> = Readonly<Component[]>
+> extends EventEmitter<{
   entityadd: Entity
   entityremoved: Entity
 }> {
-  static priority: number
+  readonly query: Readonly<ConstructorOf<T[number]>[]>
+  lifecycle: "update" | "draw" = "update"
   engine!: Engine
 
-  query = new SystemQuery([])
-
-  async init() {
-    this.query.on("entityadd", this.onEntityAdd)
-    this.query.on("entityremoved", this.onEntityRemove)
-  }
-
-  update(event: UpdateEvent, entities: LuaSet<Entity>) {}
-
-  draw(entities: LuaSet<Entity>) {}
+  update?: (event: UpdateEvent, entities: SystemEntities<T>) => void
+  draw?: (entities: SystemEntities<T>) => void
 
   onEntityAdd = (entity: Entity) => {}
   onEntityRemove = (entity: Entity) => {}
 }
+
+export type SystemEntities<
+  T extends Readonly<Component[]> = Readonly<Component[]>
+> = Array<[Entity, ...T]>

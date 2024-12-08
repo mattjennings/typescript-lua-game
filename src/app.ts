@@ -21,50 +21,54 @@ const spritesheet = new Spritesheet(res.images.player, {
   height: 28,
 })
 
-class Player extends engine.Entity {
-  animation = new AnimationComponent(this, {
-    spritesheet,
-    animations: {
-      idle: {
-        frameDuration: 0.32,
-        quads: spritesheet.getQuads(8),
+love.load = () => {
+  class Player extends engine.Entity {
+    animation = new AnimationComponent(this, {
+      spritesheet,
+      animations: {
+        idle: {
+          frameDuration: 0.32,
+          quads: spritesheet.getQuads(8),
+        },
+        run: {
+          frameDuration: 0.1,
+          quads: spritesheet.getQuads(0, 1, 2, 3),
+          loop: true,
+        },
       },
-      run: {
-        frameDuration: 0.1,
-        quads: spritesheet.getQuads(0, 1, 2, 3),
-        loop: true,
-      },
-    },
-    initial: "run",
-  })
+      initial: "run",
+    })
 
-  constructor(x: number, y: number) {
-    super()
+    constructor(x: number, y: number) {
+      super()
 
-    this.components.add(new TransformComponent(this, { x: x, y: y, scale: 1 }))
-  }
-}
-
-class Level1 extends engine.Scene {
-  a = []
-  constructor() {
-    super()
-
-    const [x, y, width, height] = love.window.getSafeArea()
-
-    print(`Safe area: ${x}x${y} ${width}x${height}`)
-
-    for (let i = 0; i < 10000; i++) {
-      const px = love.math.random(0, width)
-      const py = love.math.random(0, height)
-      this.entities.add(new Player(px, py))
+      this.components.add(
+        new TransformComponent(this, { x: x, y: y, scale: 1 })
+      )
     }
   }
 
-  onStart(): void {
-    print("Level1 started")
-  }
-}
+  class Level1 extends engine.Scene {
+    a = []
+    constructor() {
+      super()
 
-engine.addScene("level1", Level1)
-engine.start({ scene: "level1" })
+      const [x, y, width, height] = love.window.getSafeArea()
+
+      print(`Safe area: ${x}x${y} ${width}x${height}`)
+
+      for (let i = 0; i < 10000; i++) {
+        const px = love.math.random(0, width)
+        const py = love.math.random(0, height)
+        this.addEntity(new Player(px, py))
+      }
+    }
+
+    onStart(): void {
+      print("Level1 started")
+    }
+  }
+
+  engine.addScene("level1", Level1)
+  engine.start({ scene: "level1" })
+}

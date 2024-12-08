@@ -1,16 +1,18 @@
 import { UpdateEvent, Entity } from "src/engine/entity"
-import { System, SystemQuery } from "src/engine/system"
+import { SystemEntities, System } from "src/engine/system"
 import { AnimationComponent } from "./animation-component"
 import { GraphicsComponent } from "./graphics-component"
 
-export class AnimationSystem extends System {
-  query = new SystemQuery([AnimationComponent, GraphicsComponent])
+export class AnimationSystem extends System<
+  [AnimationComponent<any>, GraphicsComponent]
+> {
+  readonly query = [AnimationComponent, GraphicsComponent] as const
 
-  update(event: UpdateEvent, entities: LuaSet<Entity>): void {
-    for (const entity of entities) {
-      const animation = entity.components.get(AnimationComponent)!
-      const graphics = entity.components.get(GraphicsComponent)
-
+  update = (
+    event: UpdateEvent,
+    entities: SystemEntities<[AnimationComponent<any>, GraphicsComponent]>
+  ) => {
+    for (const [entity, animation, graphics] of entities) {
       animation.update(event.dt)
       graphics.drawable = animation.spritesheet.image
       graphics.quad = animation.currentAnimation.quads[animation.currentFrame]

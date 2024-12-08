@@ -55,18 +55,8 @@ export class Engine<
   }
 
   async start({ scene }: { scene: EngineScene<TEngine> }) {
-    this.on("scenechange", () => {
-      for (const system of this.systems) {
-        system.query.invalidate()
-      }
-    })
-
     this.started = true
     this.gotoScene(scene)
-
-    for (const system of this.systems) {
-      await system.init()
-    }
   }
 
   update(args: { dt: number }) {
@@ -113,7 +103,6 @@ export class Engine<
   }
 
   addScene(name: EngineScene<TEngine>, Scene: ConstructorOf<Scene>) {
-    print("Adding scene", name)
     this.scenes[name] = new Scene()
   }
 
@@ -137,17 +126,9 @@ export class Engine<
     this.currentScene.onStart()
   }
 
-  protected onEntityAdd = () => {
-    for (const system of this.systems) {
-      system.query.invalidate()
-    }
-  }
+  protected onEntityAdd = () => {}
 
-  protected onEntityRemove = () => {
-    for (const system of this.systems) {
-      system.query.invalidate()
-    }
-  }
+  protected onEntityRemove = () => {}
 
   get Scene() {
     const _engine = this as Engine<TSceneKey>

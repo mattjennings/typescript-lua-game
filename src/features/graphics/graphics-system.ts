@@ -1,17 +1,18 @@
 import { Texture } from "love.graphics"
 import { GraphicsComponent } from "./graphics-component"
 import { TransformComponent } from "./transform-component"
-import { UpdateEvent, Entity } from "src/engine/entity"
-import { System, SystemQuery } from "src/engine/system"
 
-export class GraphicsSystem extends System {
-  query = new SystemQuery([GraphicsComponent, TransformComponent])
+import { SystemEntities, System } from "src/engine/system"
 
-  draw(entities: LuaSet<Entity>): void {
-    for (const entity of entities) {
-      const graphics = entity.components.get(GraphicsComponent)!
-      const transform = entity.components.get(TransformComponent)!
+export class GraphicsSystem extends System<
+  [GraphicsComponent, TransformComponent]
+> {
+  readonly query = [GraphicsComponent, TransformComponent] as const
 
+  draw = (
+    entities: SystemEntities<[GraphicsComponent, TransformComponent]>
+  ) => {
+    for (const [entity, graphics, transform] of entities) {
       const x = transform.x
       const y = transform.y
       const rotation = transform.rotation

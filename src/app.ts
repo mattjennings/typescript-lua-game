@@ -15,13 +15,12 @@ export const engine = new Engine({
     scenes: "level1",
   },
 })
-
-const spritesheet = new Spritesheet(res.images.player, {
-  width: 28,
-  height: 28,
-})
-
 love.load = () => {
+  const spritesheet = new Spritesheet(res.images.player, {
+    width: 28,
+    height: 28,
+  })
+
   class Player extends engine.Entity {
     animation = new AnimationComponent(this, {
       spritesheet,
@@ -70,5 +69,7 @@ love.load = () => {
   }
 
   engine.addScene("level1", Level1)
+  engine.gotoScene("level1")
+
   engine.start({ scene: "level1" })
 }

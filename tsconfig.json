@@ -19,6 +19,8 @@
 
   "tstl": {
     "luaTarget": "JIT",
+    "luaBundleEntry": "main.ts",
+    "luaBundle": "main.lua",
     "sourceMapTraceback": true,
     "luaPlugins": [{ "name": "./plugins/copy-res.ts" }]
   },

@@ -2,16 +2,11 @@ import { Texture } from "love.graphics"
 import { GraphicsComponent } from "./graphics-component"
 import { TransformComponent } from "./transform-component"
 
-import { SystemEntities, System } from "src/engine/system"
+import { createSystemClass } from "src/engine/system"
 
-export class GraphicsSystem extends System<
-  [GraphicsComponent, TransformComponent]
-> {
-  readonly query = [GraphicsComponent, TransformComponent] as const
-
-  draw = (
-    entities: SystemEntities<[GraphicsComponent, TransformComponent]>
-  ) => {
+export const GraphicsSystem = createSystemClass({
+  query: [GraphicsComponent, TransformComponent] as const,
+  draw(entities) {
     for (const [entity, graphics, transform] of entities) {
       const x = transform.x
       const y = transform.y
@@ -63,5 +58,5 @@ export class GraphicsSystem extends System<
         }
       }
     }
-  }
-}
+  },
+})

@@ -25,3 +25,31 @@ export class System<
 export type SystemEntities<
   T extends Readonly<Component[]> = Readonly<Component[]>
 > = Array<[Entity, ...T]>
+
+/**
+ * helper function to create a system class with proper types
+ */
+export function createSystemClass<
+  Q extends Readonly<ConstructorOf<Component>[]>
+>(args: {
+  query: Q
+  update?: (
+    event: UpdateEvent,
+    entities: SystemEntities<{ [K in keyof Q]: InstanceType<Q[K]> }>
+  ) => void
+  draw?: (
+    entities: SystemEntities<{ [K in keyof Q]: InstanceType<Q[K]> }>
+  ) => void
+  onEntityAdd?: (entity: Entity) => void
+  onEntityRemove?: (entity: Entity) => void
+}) {
+  return class extends System<{ [K in keyof Q]: InstanceType<Q[K]> }> {
+    query = args.query as any
+
+    update = args.update
+    draw = args.draw
+
+    onEntityAdd = args.onEntityAdd
+    onEntityRemove = args.onEntityRemove
+  }
+}

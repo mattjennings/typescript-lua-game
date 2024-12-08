@@ -77,13 +77,6 @@ export class Engine<
   addSystem(system: System) {
     this.systems.push(system)
     system.engine = this
-
-    this.systems.sort((a, b) => {
-      const aPriority = a.constructor["priority"] ?? 0
-      const bPriority = b.constructor["priority"] ?? 0
-
-      return bPriority - aPriority
-    })
   }
 
   removeSystem(system: System) {

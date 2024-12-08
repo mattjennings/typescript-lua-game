@@ -1,14 +1,12 @@
-import { UpdateEvent, Entity } from "src/engine/entity"
-import { SystemEntities, System } from "src/engine/system"
+import { UpdateEvent } from "src/engine/entity"
+import { SystemEntities, createSystemClass } from "src/engine/system"
 import { AnimationComponent } from "./animation-component"
 import { GraphicsComponent } from "./graphics-component"
 
-export class AnimationSystem extends System<
-  [AnimationComponent<any>, GraphicsComponent]
-> {
-  readonly query = [AnimationComponent, GraphicsComponent] as const
+export const AnimationSystem = createSystemClass({
+  query: [AnimationComponent, GraphicsComponent] as const,
 
-  update = (
+  update: (
     event: UpdateEvent,
     entities: SystemEntities<[AnimationComponent<any>, GraphicsComponent]>
   ) => {
@@ -17,5 +15,5 @@ export class AnimationSystem extends System<
       graphics.drawable = animation.spritesheet.image
       graphics.quad = animation.currentAnimation.quads[animation.currentFrame]
     }
-  }
-}
+  },
+})

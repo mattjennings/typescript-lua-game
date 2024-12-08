@@ -10,7 +10,7 @@ export const AnimationSystem = createSystemClass({
     event: SceneUpdateEvent,
     entities: SystemEntities<[AnimationComponent<any>, GraphicsComponent]>
   ) => {
-    for (const [entity, animation, graphics] of entities) {
+    for (const [entity, [animation, graphics]] of entities) {
       animation.update(event.dt)
       graphics.drawable = animation.spritesheet.image
       graphics.quad = animation.currentAnimation.quads[animation.currentFrame]

@@ -1,4 +1,4 @@
-import { Component, Engine } from "./engine"
+import { Component, Engine, Scene } from "./engine"
 import { res } from "./res"
 import {
   GraphicsSystem,
@@ -15,6 +15,7 @@ export const engine = new Engine({
     scenes: "level1",
   },
 })
+
 love.load = () => {
   const spritesheet = new Spritesheet(res.images.player, {
     width: 28,
@@ -22,6 +23,8 @@ love.load = () => {
   })
 
   class Player extends engine.Entity {
+    name = "player"
+
     animation = new AnimationComponent(this, {
       spritesheet,
       animations: {
@@ -38,17 +41,15 @@ love.load = () => {
       initial: "run",
     })
 
+    transform: TransformComponent
+
     constructor(x: number, y: number) {
       super()
-
-      this.components.add(
-        new TransformComponent(this, { x: x, y: y, scale: 1 })
-      )
+      this.transform = new TransformComponent(this, { x: x, y: y, scale: 1 })
     }
   }
 
   class Level1 extends engine.Scene {
-    a = []
     constructor() {
       super()
 
@@ -67,7 +68,5 @@ love.load = () => {
   }
 
   engine.addScene("level1", Level1)
-  engine.gotoScene("level1")
-
   engine.start({ scene: "level1" })
 }

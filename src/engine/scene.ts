@@ -15,14 +15,21 @@ export class Scene extends EventEmitter<{
 }> {
   engine!: Engine<any>
   entities = new LuaSet<Entity>()
-  systems: System[] = []
   paused = false
   elapsedTime = 0
 
+  protected systems: System[] = []
   private entitiesBySystem = new LuaMap<System, SystemEntities>()
 
+  constructor() {
+    super()
+
+    for (const system of this.systems) {
+      this.entitiesBySystem.set(system, new LuaMap())
+    }
+  }
+
   addEntity(entity: Entity) {
-    entity.scene = this
     entity.onAdd(this)
     entity.emit("add", this)
 
@@ -31,13 +38,15 @@ export class Scene extends EventEmitter<{
 
     for (const system of this.systems) {
       if (!this.entitiesBySystem.has(system)) {
-        this.entitiesBySystem.set(system, [])
+        this.entitiesBySystem.set(system, new LuaMap())
       }
 
       let isForSystem = true
       const components = []
       for (const ctor of system.query) {
         const component = entity.components.get(ctor)
+        print(ctor["type"], !!component, entity.name)
+
         if (component) {
           components.push(component)
         } else {
@@ -47,35 +56,7 @@ export class Scene extends EventEmitter<{
       }
 
       if (isForSystem) {
-        this.entitiesBySystem
-          .get(system)!
-          .push([entity, ...components] as const)
-      }
-    }
-  }
-
-  updateEntity(entity: Entity) {
-    for (const system of this.systems) {
-      if (!this.entitiesBySystem.has(system)) {
-        this.entitiesBySystem.set(system, [])
-      }
-
-      let isForSystem = true
-      const components = []
-      for (const ctor of system.query) {
-        const component = entity.components.get(ctor)
-        if (component) {
-          components.push(component)
-        } else {
-          isForSystem = false
-          break
-        }
-      }
-
-      if (isForSystem) {
-        this.entitiesBySystem
-          .get(system)!
-          .push([entity, ...components] as const)
+        this.entitiesBySystem.get(system).set(entity, components)
       }
     }
   }
@@ -93,13 +74,9 @@ export class Scene extends EventEmitter<{
 
     for (const system of this.systems) {
       const entities = this.entitiesBySystem.get(system)
-      if (entities) {
-        for (let i = 0; i < entities.length; i++) {
-          if (entities[i][0] === entity) {
-            entities[i] = undefined
-            break
-          }
-        }
+
+      if (entities.get(entity)) {
+        entities.delete(entity)
       }
     }
   }
@@ -116,12 +93,7 @@ export class Scene extends EventEmitter<{
 
     for (const system of this.systems) {
       if ("update" in system) {
-        system.update(
-          args,
-          (this.entitiesBySystem.get(system) || []) as SystemEntities<
-            readonly []
-          >
-        )
+        system.update(args, this.entitiesBySystem.get(system))
       }
     }
 
@@ -138,11 +110,7 @@ export class Scene extends EventEmitter<{
 
     for (const system of this.systems) {
       if ("draw" in system) {
-        system.draw(
-          (this.entitiesBySystem.get(system) || []) as SystemEntities<
-            readonly []
-          >
-        )
+        system.draw(this.entitiesBySystem.get(system))
       }
     }
 

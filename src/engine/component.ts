@@ -8,10 +8,6 @@ export abstract class Component<
   static type: string
   entity: Entity
 
-  private sceneListeners: Array<
-    [keyof EventsOf<Scene>, (payload: any) => void]
-  > = []
-
   constructor(entity: Entity) {
     super()
 
@@ -19,12 +15,6 @@ export abstract class Component<
     entity.components.add(this)
   }
 
+  onAdd: (entity: Entity) => {}
   onRemove: (entity: Entity) => {}
-
-  $onScene<T extends keyof EventsOf<Scene>>(
-    event: T,
-    listener: (payload: EventsOf<Scene>[T]) => void
-  ) {
-    this.sceneListeners.push([event, listener])
-  }
 }

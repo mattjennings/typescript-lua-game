@@ -127,7 +127,7 @@ export class Engine<
     const _engine = this as Engine<TSceneKey>
     const ctor = class extends Scene {
       engine = _engine
-      systems = _engine.systems
+      protected systems = _engine.systems
     }
 
     return ctor

@@ -34,8 +34,8 @@ export class AnimationComponent<Key extends string> extends Component<{
     }
   ) {
     super(entity)
-    if (!entity.components.get(GraphicsComponent)) {
-      entity.components.add(new GraphicsComponent(entity))
+    if (!entity.components.has(GraphicsComponent)) {
+      new GraphicsComponent(entity)
     }
 
     this.spritesheet = args.spritesheet

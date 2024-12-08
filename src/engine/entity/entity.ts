@@ -9,8 +9,8 @@ export class Entity extends EventEmitter<{
   destroy: void
 }> {
   name?: string = "Entity"
-  engine?: Engine
-  scene?: Scene
+  engine!: Engine
+  scene!: Scene
   components = new ComponentRegistry(this)
 
   constructor() {
@@ -69,10 +69,23 @@ export class Entity extends EventEmitter<{
     })
   }
 
+  addToScene(scene: Scene) {
+    scene.addEntity(this)
+    this.emit("add", scene)
+  }
+
+  moveToScene(scene: Scene) {
+    if (this.scene) {
+      this.scene.removeEntity(this)
+    }
+
+    scene.addEntity(this)
+  }
+
   /**
    * Removes the entity from the scene but does not destroy it.
    */
-  remove() {
+  removeFromScene() {
     if (this.scene) {
       this.scene.removeEntity(this)
       this.emit("remove", this.scene)

@@ -7,7 +7,7 @@ import { createSystemClass } from "src/engine/system"
 export const GraphicsSystem = createSystemClass({
   query: [GraphicsComponent, TransformComponent] as const,
   draw(entities) {
-    for (const [entity, graphics, transform] of entities) {
+    for (const [entity, [graphics, transform]] of entities) {
       const x = transform.x
       const y = transform.y
       const rotation = transform.rotation

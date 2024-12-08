@@ -25,7 +25,7 @@ export class System<
 
 export type SystemEntities<
   T extends Readonly<Component[]> = Readonly<Component[]>
-> = Array<[Entity, ...T]>
+> = LuaMap<Entity, T>
 
 /**
  * helper function to create a system class with proper types

@@ -1,5 +1,4 @@
 import { Component } from "src/engine/component"
-import { Entity } from "src/engine/entity"
 
 export class TransformComponent extends Component {
   static type = "transform"
@@ -9,17 +8,13 @@ export class TransformComponent extends Component {
   rotation: number = 0
   scale: number | [number, number] = 1
 
-  constructor(
-    entity: Entity,
-    args: {
-      x?: number
-      y?: number
-      rotation?: number
-      scale?: number | [number, number]
-    }
-  ) {
-    super(entity)
-
+  constructor(args: {
+    x?: number
+    y?: number
+    rotation?: number
+    scale?: number | [number, number]
+  }) {
+    super()
     if (args.x) {
       this.x = args.x
     }

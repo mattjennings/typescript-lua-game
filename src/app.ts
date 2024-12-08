@@ -1,13 +1,13 @@
-import { Component, Engine, Scene } from "./engine"
+import { Component, Engine, Entity, Scene } from "./engine"
 import { res } from "./res"
 import {
   GraphicsSystem,
   TransformComponent,
   GraphicsComponent,
   Spritesheet,
+  AnimationComponent,
+  AnimationSystem,
 } from "./features/graphics"
-import { AnimationComponent } from "./features/graphics/animation-component"
-import { AnimationSystem } from "./features/graphics/animation-system"
 
 export const engine = new Engine({
   systems: [new AnimationSystem(), new GraphicsSystem()],
@@ -16,49 +16,56 @@ export const engine = new Engine({
   },
 })
 
-love.load = () => {
+function createPlayer(x: number, y: number) {
   const spritesheet = new Spritesheet(res.images.player, {
     width: 28,
     height: 28,
   })
 
-  class Player extends engine.Entity {
-    name = "player"
+  const player = new engine.Entity("player")
+    .add("transform", new TransformComponent({ x, y, scale: 3 }))
+    .add(
+      "animation",
+      new AnimationComponent({
+        spritesheet,
+        animations: {
+          idle: {
+            frameDuration: 0.32,
+            quads: spritesheet.getQuads(8),
+          },
+          run: {
+            frameDuration: 0.1,
+            quads: spritesheet.getQuads(0, 1, 2, 3),
+            loop: true,
+          },
+        },
+        initial: "run",
+      })
+    )
+    .onSceneEvent("update", (args) => {
+      if (love.keyboard.isDown("left")) {
+        player.transform.x -= 1
+      }
 
-    animation = new AnimationComponent(this, {
-      spritesheet,
-      animations: {
-        idle: {
-          frameDuration: 0.32,
-          quads: spritesheet.getQuads(8),
-        },
-        run: {
-          frameDuration: 0.1,
-          quads: spritesheet.getQuads(0, 1, 2, 3),
-          loop: true,
-        },
-      },
-      initial: "run",
+      if (love.keyboard.isDown("right")) {
+        player.transform.x += 1
+      }
     })
 
-    transform: TransformComponent
+  return player
+}
 
-    constructor(x: number, y: number) {
-      super()
-      this.transform = new TransformComponent(this, { x: x, y: y, scale: 1 })
-    }
-  }
-
+love.load = () => {
   class Level1 extends engine.Scene {
     constructor() {
       super()
 
       const [x, y, width, height] = love.window.getSafeArea()
 
-      for (let i = 0; i < 10000; i++) {
+      for (let i = 0; i < 1; i++) {
         const px = love.math.random(0, width)
         const py = love.math.random(0, height)
-        this.addEntity(new Player(px, py))
+        this.addEntity(createPlayer(px, py))
       }
     }
 

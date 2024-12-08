@@ -10,11 +10,11 @@ export class Scene extends EventEmitter<{
   predraw: void
   draw: void
   postdraw: void
-  entityadd: Entity
-  entityremove: Entity
+  entityadd: Entity<any, any, any>
+  entityremove: Entity<any, any, any>
 }> {
   engine!: Engine<any>
-  entities = new LuaSet<Entity>()
+  entities = new LuaSet<Entity<any, any, any>>()
   paused = false
   elapsedTime = 0
 
@@ -29,11 +29,10 @@ export class Scene extends EventEmitter<{
     }
   }
 
-  addEntity(entity: Entity) {
-    entity.onAdd(this)
+  addEntity(entity: Entity<any, any, any>) {
     entity.emit("add", this)
-
     this.emit("entityadd", entity)
+
     this.entities.add(entity)
 
     for (const system of this.systems) {
@@ -45,7 +44,6 @@ export class Scene extends EventEmitter<{
       const components = []
       for (const ctor of system.query) {
         const component = entity.components.get(ctor)
-        print(ctor["type"], !!component, entity.name)
 
         if (component) {
           components.push(component)
@@ -61,13 +59,12 @@ export class Scene extends EventEmitter<{
     }
   }
 
-  removeEntity(entity: Entity, destroy = false) {
+  removeEntity(entity: Entity<any, any, any>, destroy = false) {
     delete entity.scene
 
     if (destroy) {
       entity.destroy()
     }
-    entity.onRemove(this)
 
     this.emit("entityremove", entity)
     this.entities.delete(entity)

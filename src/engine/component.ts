@@ -8,13 +8,6 @@ export abstract class Component<
   static type: string
   entity: Entity
 
-  constructor(entity: Entity) {
-    super()
-
-    this.entity = entity
-    entity.components.add(this)
-  }
-
-  onAdd: (entity: Entity) => {}
-  onRemove: (entity: Entity) => {}
+  onAdd?: (entity: Entity<any, any, any>) => void
+  onRemove?: (entity: Entity<any, any, any>) => void
 }

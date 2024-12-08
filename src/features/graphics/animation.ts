@@ -1,7 +1,9 @@
 import { Quad } from "love.graphics"
 import { Spritesheet } from "./spritesheet"
 import { Component, Entity } from "src/engine"
-import { GraphicsComponent } from "./graphics-component"
+import { GraphicsComponent } from "./graphics"
+import { SystemEntities, createSystemClass } from "src/engine/system"
+import { SceneUpdateEvent } from "src/engine"
 
 export interface AnimationDefinition {
   quads: Quad[]
@@ -25,22 +27,22 @@ export class AnimationComponent<Key extends string> extends Component<{
 
   private elapsed = 0
 
-  constructor(
-    entity: Entity,
-    args: {
-      spritesheet: Spritesheet
-      initial: NoInfer<Key>
-      animations: Record<Key, AnimationDefinition>
-    }
-  ) {
-    super(entity)
-    if (!entity.components.has(GraphicsComponent)) {
-      new GraphicsComponent(entity)
-    }
+  constructor(args: {
+    spritesheet: Spritesheet
+    initial: NoInfer<Key>
+    animations: Record<Key, AnimationDefinition>
+  }) {
+    super()
 
     this.spritesheet = args.spritesheet
     this.animations = args.animations
     this.currentAnimationKey = args.initial
+  }
+
+  onAdd = (entity: Entity<any, any, any>) => {
+    if (!entity.components.has(GraphicsComponent)) {
+      entity.add(new GraphicsComponent())
+    }
   }
 
   get currentAnimation() {
@@ -96,3 +98,18 @@ export class AnimationComponent<Key extends string> extends Component<{
     this.prevFrame = this.currentFrame
   }
 }
+
+export const AnimationSystem = createSystemClass({
+  query: [AnimationComponent, GraphicsComponent] as const,
+
+  update: (
+    event: SceneUpdateEvent,
+    entities: SystemEntities<[AnimationComponent<any>, GraphicsComponent]>
+  ) => {
+    for (const [entity, [animation, graphics]] of entities) {
+      animation.update(event.dt)
+      graphics.drawable = animation.spritesheet.image
+      graphics.quad = animation.currentAnimation.quads[animation.currentFrame]
+    }
+  },
+})

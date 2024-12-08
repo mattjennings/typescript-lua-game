@@ -1,8 +1,39 @@
 import { Texture } from "love.graphics"
-import { GraphicsComponent } from "./graphics-component"
-import { TransformComponent } from "./transform-component"
-
+import { TransformComponent } from "./transform"
+import { Drawable, Quad } from "love.graphics"
+import { Component } from "src/engine/component"
 import { createSystemClass } from "src/engine/system"
+
+export class GraphicsComponent extends Component {
+  static type = "graphics"
+
+  drawable?: Drawable
+  quad?: Quad
+  origin: [number, number] = [0, 0]
+  shear: [number, number] = [0, 0]
+
+  constructor(
+    args: {
+      drawable?: Drawable
+      quad?: Quad
+      origin?: [number, number]
+      shear?: [number, number]
+    } = {}
+  ) {
+    super()
+
+    this.drawable = args.drawable
+    this.quad = args.quad
+
+    if (args.origin) {
+      this.origin = args.origin
+    }
+
+    if (args.shear) {
+      this.shear = args.shear
+    }
+  }
+}
 
 export const GraphicsSystem = createSystemClass({
   query: [GraphicsComponent, TransformComponent] as const,

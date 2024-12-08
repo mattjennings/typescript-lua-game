@@ -1,85 +1,41 @@
+import { ConstructorOf } from "src/types"
+import { Component } from "../component"
+import { EventEmitter, EventNameOf, EventsOf } from "../event-emitter"
+import { Scene } from "../scene"
 import { Engine } from "../engine"
-import { EventEmitter, EventsOf } from "../event-emitter"
-import { Scene, SceneUpdateEvent } from "../scene"
-import { ComponentRegistry } from "./component-registry"
 
-export class Entity extends EventEmitter<{
-  add: Scene
-  remove: Scene
-  destroy: void
-}> {
+export class Entity<
+  C extends Component<any> = null,
+  P extends Record<string, any> = {},
+  E extends Record<string, unknown> = {}
+> extends EventEmitter<
+  E & {
+    add: Scene
+    remove: Scene
+    destroy: void
+  }
+> {
   name?: string = "Entity"
   engine!: Engine
-  scene!: Scene
-  components = new ComponentRegistry(this)
+  scene?: Scene
+  components = new LuaMap<Function, C>()
 
-  constructor() {
+  constructor(name?: string) {
     super()
-
-    this.on("add", (scene) => {
-      if (this.onPreUpdate) {
-        scene.on("preupdate", this.onPreUpdate)
-      }
-
-      if (this.onUpdate) {
-        scene.on("update", this.onUpdate)
-      }
-
-      if (this.onPostUpdate) {
-        scene.on("postupdate", this.onPostUpdate)
-      }
-
-      if (this.onPreDraw) {
-        scene.on("predraw", this.onPreDraw)
-      }
-
-      if (this.onDraw) {
-        scene.on("draw", this.onDraw)
-      }
-
-      if (this.onPostDraw) {
-        scene.on("postdraw", this.onPostDraw)
-      }
-    })
-
-    this.on("remove", (scene) => {
-      if (this.onPreUpdate) {
-        scene.off("preupdate", this.onPreUpdate)
-      }
-
-      if (this.onUpdate) {
-        scene.off("update", this.onUpdate)
-      }
-
-      if (this.onPostUpdate) {
-        scene.off("postupdate", this.onPostUpdate)
-      }
-
-      if (this.onPreDraw) {
-        scene.off("predraw", this.onPreDraw)
-      }
-
-      if (this.onDraw) {
-        scene.off("draw", this.onDraw)
-      }
-
-      if (this.onPostDraw) {
-        scene.off("postdraw", this.onPostDraw)
-      }
-    })
+    this.name = name
   }
 
   addToScene(scene: Scene) {
-    scene.addEntity(this)
-    this.emit("add", scene)
+    scene.addEntity(this as any)
+    this.emit("add", scene as any)
   }
 
   moveToScene(scene: Scene) {
     if (this.scene) {
-      this.scene.removeEntity(this)
+      this.scene.removeEntity(this as any)
     }
 
-    scene.addEntity(this)
+    scene.addEntity(this as any)
   }
 
   /**
@@ -87,8 +43,8 @@ export class Entity extends EventEmitter<{
    */
   removeFromScene() {
     if (this.scene) {
-      this.scene.removeEntity(this)
-      this.emit("remove", this.scene)
+      this.scene.removeEntity(this as any)
+      this.emit("remove", this.scene as any)
     }
   }
 
@@ -97,22 +53,75 @@ export class Entity extends EventEmitter<{
    */
   destroy() {
     if (this.scene) {
-      this.scene.removeEntity(this, true)
+      this.scene.removeEntity(this as any, true)
     }
     this.emit("destroy", undefined)
     this.removeAllListeners()
-    this.components.destroy()
+    for (const [key, component] of this.components) {
+      component.onRemove?.(this)
+    }
   }
 
-  onAdd = (scene: Scene) => {}
+  // Overloads
+  add<Name extends string, Value>(
+    name: Name,
+    value: Value
+  ): Value extends Component
+    ? Entity<C | Value, P & { [K in Name]: Value }, E> &
+        P & { [K in Name]: Value }
+    : Entity<C, P & { [K in Name]: Value }, E> & P & { [K in Name]: Value }
 
-  onRemove = (scene: Scene) => {}
+  add<Value extends Component>(component: Value): Entity<C | Value, P, E> & P
 
-  onPreUpdate?: (event: SceneUpdateEvent) => void
-  onUpdate?: (event: SceneUpdateEvent) => void
-  onPostUpdate?: (event: SceneUpdateEvent) => void
+  // Implementation
+  add<C extends Component>(...args: [C] | [string, any]): any {
+    if (typeof args[0] === "string") {
+      // Named component addition
+      const [name, value] = args as [string, Component]
 
-  onPreDraw?: () => void
-  onDraw?: () => void
-  onPostDraw?: () => void
+      if (value instanceof Component) {
+        value.entity = this as any
+        this.components.set(value.constructor, value as any)
+        value.onAdd?.(this as any)
+      }
+
+      this[name] = value
+      return this as any
+    } else {
+      const [component] = args as [Component]
+      this.components.set(component.constructor, component as any)
+      component.onAdd?.(this as any)
+      return this as any
+    }
+  }
+
+  onSceneEvent<E extends EventNameOf<typeof this.scene>>(
+    event: E,
+    listener: (payload: EventsOf<typeof this.scene>[E]) => void
+  ): this {
+    if (this.scene) {
+      this.scene.on(event as any, listener)
+    } else {
+      this.on("add", (scene) => {
+        scene!.on(event as any, listener)
+      })
+    }
+
+    this.on("remove", (scene) => {
+      scene!.off(event as any, listener)
+    })
+    return this
+  }
+
+  events<E extends Record<string, unknown>>(): Entity<C, P, E> {
+    return this as any
+  }
+
+  getComponent<C extends Component>(ctor: ConstructorOf<Component>): C {
+    const componentInstance = this.components.get(ctor)
+    if (!componentInstance) {
+      throw new Error(`Component ${ctor.name} not found`)
+    }
+    return componentInstance as unknown as C
+  }
 }

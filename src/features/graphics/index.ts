@@ -1,4 +1,4 @@
-export * from "./graphics-component"
-export * from "./graphics-system"
+export * from "./animation"
+export * from "./graphics"
 export * from "./spritesheet"
-export * from "./transform-component"
+export * from "./transform"

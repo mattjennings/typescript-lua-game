@@ -1,34 +1,73 @@
 import { Engine } from "../engine"
-import { EventEmitter } from "../event-emitter"
-import { Scene } from "../scene"
+import { EventEmitter, EventsOf } from "../event-emitter"
+import { Scene, SceneUpdateEvent } from "../scene"
 import { ComponentRegistry } from "./component-registry"
 
-export type UpdateEvent = { dt: number }
-
-export abstract class Entity extends EventEmitter<{
+export class Entity extends EventEmitter<{
   add: Scene
   remove: Scene
   destroy: void
-  preupdate: UpdateEvent
-  update: UpdateEvent
-  postupdate: UpdateEvent
-  predraw: void
-  draw: void
-  postdraw: void
 }> {
   name?: string = "Entity"
   engine?: Engine
   scene?: Scene
-
   components = new ComponentRegistry(this)
 
-  onPreUpdate = (args: UpdateEvent) => {}
-  onUpdate = (args: UpdateEvent) => {}
-  onPostUpdate = (args: UpdateEvent) => {}
+  constructor() {
+    super()
 
-  onPreDraw = () => {}
-  onDraw = () => {}
-  onPostDraw = () => {}
+    this.on("add", (scene) => {
+      if (this.onPreUpdate) {
+        scene.on("preupdate", this.onPreUpdate)
+      }
+
+      if (this.onUpdate) {
+        scene.on("update", this.onUpdate)
+      }
+
+      if (this.onPostUpdate) {
+        scene.on("postupdate", this.onPostUpdate)
+      }
+
+      if (this.onPreDraw) {
+        scene.on("predraw", this.onPreDraw)
+      }
+
+      if (this.onDraw) {
+        scene.on("draw", this.onDraw)
+      }
+
+      if (this.onPostDraw) {
+        scene.on("postdraw", this.onPostDraw)
+      }
+    })
+
+    this.on("remove", (scene) => {
+      if (this.onPreUpdate) {
+        scene.off("preupdate", this.onPreUpdate)
+      }
+
+      if (this.onUpdate) {
+        scene.off("update", this.onUpdate)
+      }
+
+      if (this.onPostUpdate) {
+        scene.off("postupdate", this.onPostUpdate)
+      }
+
+      if (this.onPreDraw) {
+        scene.off("predraw", this.onPreDraw)
+      }
+
+      if (this.onDraw) {
+        scene.off("draw", this.onDraw)
+      }
+
+      if (this.onPostDraw) {
+        scene.off("postdraw", this.onPostDraw)
+      }
+    })
+  }
 
   /**
    * Removes the entity from the scene but does not destroy it.
@@ -47,10 +86,20 @@ export abstract class Entity extends EventEmitter<{
     if (this.scene) {
       this.scene.removeEntity(this, true)
     }
+    this.emit("destroy", undefined)
     this.removeAllListeners()
     this.components.destroy()
   }
 
   onAdd = (scene: Scene) => {}
+
   onRemove = (scene: Scene) => {}
+
+  onPreUpdate?: (event: SceneUpdateEvent) => void
+  onUpdate?: (event: SceneUpdateEvent) => void
+  onPostUpdate?: (event: SceneUpdateEvent) => void
+
+  onPreDraw?: () => void
+  onDraw?: () => void
+  onPostDraw?: () => void
 }

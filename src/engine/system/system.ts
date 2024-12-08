@@ -1,9 +1,10 @@
 import { ConstructorOf } from "src/types"
 import { Engine } from "../engine"
-import { Entity, UpdateEvent } from "../entity"
+import { Entity } from "../entity"
 import { EventEmitter } from "../event-emitter"
 
 import { Component } from "../component"
+import { SceneUpdateEvent } from "../scene"
 
 export class System<
   T extends Readonly<Component[]> = Readonly<Component[]>
@@ -15,7 +16,7 @@ export class System<
   lifecycle: "update" | "draw" = "update"
   engine!: Engine
 
-  update?: (event: UpdateEvent, entities: SystemEntities<T>) => void
+  update?: (event: SceneUpdateEvent, entities: SystemEntities<T>) => void
   draw?: (entities: SystemEntities<T>) => void
 
   onEntityAdd = (entity: Entity) => {}
@@ -34,7 +35,7 @@ export function createSystemClass<
 >(args: {
   query: Q
   update?: (
-    event: UpdateEvent,
+    event: SceneUpdateEvent,
     entities: SystemEntities<{ [K in keyof Q]: InstanceType<Q[K]> }>
   ) => void
   draw?: (

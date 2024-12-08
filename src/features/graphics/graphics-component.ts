@@ -1,4 +1,5 @@
 import { Drawable, Quad } from "love.graphics"
+import { SceneUpdateEvent } from "src/engine"
 import { Component } from "src/engine/component"
 import { Entity } from "src/engine/entity"
 

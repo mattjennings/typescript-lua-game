@@ -1,6 +1,9 @@
 export class EventEmitter<
   Events extends Record<string, unknown> = Record<string, unknown>
 > {
+  // needed for type inference
+  protected __events!: Events
+
   listeners: Partial<
     Record<keyof Events, LuaSet<(payload: Events[keyof Events]) => void>>
   > = {}
@@ -33,3 +36,6 @@ export class EventEmitter<
     this.listeners = {}
   }
 }
+
+export type EventsOf<T> = T extends EventEmitter<infer U> ? U : never
+export type EventNameOf<T> = keyof EventsOf<T>

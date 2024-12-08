@@ -54,8 +54,6 @@ love.load = () => {
 
       const [x, y, width, height] = love.window.getSafeArea()
 
-      print(`Safe area: ${x}x${y} ${width}x${height}`)
-
       for (let i = 0; i < 10000; i++) {
         const px = love.math.random(0, width)
         const py = love.math.random(0, height)

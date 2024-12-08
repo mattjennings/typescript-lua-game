@@ -4,8 +4,12 @@ import { EventEmitter } from "./event-emitter"
 import { System, SystemEntities } from "./system"
 
 export class Scene extends EventEmitter<{
+  preupdate: { dt: number }
   update: { dt: number }
+  postupdate: { dt: number }
+  predraw: void
   draw: void
+  postdraw: void
   entityadd: Entity
   entityremove: Entity
 }> {
@@ -15,7 +19,7 @@ export class Scene extends EventEmitter<{
   paused = false
   elapsedTime = 0
 
-  entitiesBySystem = new LuaMap<System, SystemEntities>()
+  private entitiesBySystem = new LuaMap<System, SystemEntities>()
 
   addEntity(entity: Entity) {
     entity.scene = this
@@ -25,6 +29,32 @@ export class Scene extends EventEmitter<{
     this.emit("entityadd", entity)
     this.entities.add(entity)
 
+    for (const system of this.systems) {
+      if (!this.entitiesBySystem.has(system)) {
+        this.entitiesBySystem.set(system, [])
+      }
+
+      let isForSystem = true
+      const components = []
+      for (const ctor of system.query) {
+        const component = entity.components.get(ctor)
+        if (component) {
+          components.push(component)
+        } else {
+          isForSystem = false
+          break
+        }
+      }
+
+      if (isForSystem) {
+        this.entitiesBySystem
+          .get(system)!
+          .push([entity, ...components] as const)
+      }
+    }
+  }
+
+  updateEntity(entity: Entity) {
     for (const system of this.systems) {
       if (!this.entitiesBySystem.has(system)) {
         this.entitiesBySystem.set(system, [])
@@ -78,18 +108,11 @@ export class Scene extends EventEmitter<{
     if (this.paused) {
       return
     }
+
+    this.emit("preupdate", args)
+
     this.emit("update", args)
     this.elapsedTime += args.dt
-
-    // for (const entity of this.currentScene.entities) {
-    //   entity.onPreUpdate(args)
-    //   entity.emit("preupdate", args)
-    // }
-
-    // for (const entity of this.currentScene.entities) {
-    //   entity.onUpdate(args)
-    //   entity.emit("update", args)
-    // }
 
     for (const system of this.systems) {
       if ("update" in system) {
@@ -102,16 +125,16 @@ export class Scene extends EventEmitter<{
       }
     }
 
-    // for (const entity of this.currentScene.entities) {
-    //   entity.onPostUpdate(args)
-    //   entity.emit("postupdate", args)
-    // }
+    this.emit("postupdate", args)
   }
 
   draw() {
     if (this.paused) {
       return
     }
+
+    this.emit("predraw", undefined)
+    this.emit("draw", undefined)
 
     for (const system of this.systems) {
       if ("draw" in system) {
@@ -123,6 +146,8 @@ export class Scene extends EventEmitter<{
       }
     }
 
+    this.emit("postdraw", undefined)
+
     love.graphics.print(
       `FPS: ${love.timer.getFPS().toString()}`,
       love.window.getSafeArea()[2] - 60,
@@ -132,3 +157,5 @@ export class Scene extends EventEmitter<{
 
   onStart() {}
 }
+
+export type SceneUpdateEvent = { dt: number }

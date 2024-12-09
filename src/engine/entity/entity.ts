@@ -5,14 +5,14 @@ import { Scene } from "../scene"
 import { Engine } from "../engine"
 
 export class Entity<
-  C extends Component<any> = null,
+  C extends Component<any> = Component,
   P extends Record<string, any> = {},
   E extends Record<string, unknown> = {}
 > extends EventEmitter<
   E & {
     add: Scene
     remove: Scene
-    destroy: void
+    destroy: undefined
   }
 > {
   name?: string = "Entity"
@@ -27,7 +27,6 @@ export class Entity<
 
   addToScene(scene: Scene) {
     scene.addEntity(this as any)
-    this.emit("add", scene as any)
   }
 
   moveToScene(scene: Scene) {
@@ -44,7 +43,6 @@ export class Entity<
   removeFromScene() {
     if (this.scene) {
       this.scene.removeEntity(this as any)
-      this.emit("remove", this.scene as any)
     }
   }
 
@@ -55,7 +53,7 @@ export class Entity<
     if (this.scene) {
       this.scene.removeEntity(this as any, true)
     }
-    this.emit("destroy", undefined)
+    this.emit("destroy", undefined as any)
     this.removeAllListeners()
     for (const [key, component] of this.components) {
       component.onRemove?.(this)
@@ -85,6 +83,7 @@ export class Entity<
         value.onAdd?.(this as any)
       }
 
+      // @ts-ignore
       this[name] = value
       return this as any
     } else {
@@ -108,7 +107,7 @@ export class Entity<
     }
 
     this.on("remove", (scene) => {
-      scene!.off(event as any, listener)
+      scene!.off(event as any, listener as any)
     })
     return this
   }

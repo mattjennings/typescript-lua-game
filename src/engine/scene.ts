@@ -30,6 +30,7 @@ export class Scene extends EventEmitter<{
   }
 
   addEntity(entity: Entity<any, any, any>) {
+    entity.scene = this
     entity.emit("add", this)
     this.emit("entityadd", entity)
 
@@ -54,23 +55,24 @@ export class Scene extends EventEmitter<{
       }
 
       if (isForSystem) {
-        this.entitiesBySystem.get(system).set(entity, components)
+        this.entitiesBySystem.get(system)!.set(entity, components)
       }
     }
   }
 
   removeEntity(entity: Entity<any, any, any>, destroy = false) {
-    delete entity.scene
+    entity.scene = undefined
 
     if (destroy) {
       entity.destroy()
     }
 
     this.emit("entityremove", entity)
+    entity.emit("remove", this)
     this.entities.delete(entity)
 
     for (const system of this.systems) {
-      const entities = this.entitiesBySystem.get(system)
+      const entities = this.entitiesBySystem.get(system)!
 
       if (entities.get(entity)) {
         entities.delete(entity)
@@ -89,9 +91,7 @@ export class Scene extends EventEmitter<{
     this.elapsedTime += args.dt
 
     for (const system of this.systems) {
-      if ("update" in system) {
-        system.update(args, this.entitiesBySystem.get(system))
-      }
+      system.update?.(args, this.entitiesBySystem.get(system)!)
     }
 
     this.emit("postupdate", args)
@@ -106,9 +106,7 @@ export class Scene extends EventEmitter<{
     this.emit("draw", undefined)
 
     for (const system of this.systems) {
-      if ("draw" in system) {
-        system.draw(this.entitiesBySystem.get(system))
-      }
+      system.draw?.(this.entitiesBySystem.get(system)!)
     }
 
     this.emit("postdraw", undefined)

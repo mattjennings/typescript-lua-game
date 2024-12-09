@@ -12,15 +12,14 @@ export class EventEmitter<
     if (!this.listeners[event]) {
       this.listeners[event] = new LuaSet()
     }
-    this.listeners[event]!.add(listener)
+    this.listeners[event]!.add(
+      listener as (payload: Events[keyof Events]) => void
+    )
     return this
   }
 
-  off<K extends keyof Events>(
-    event: K,
-    listener: (payload: Events[K]) => void
-  ) {
-    this.listeners[event]?.delete(listener)
+  off<K extends keyof Events>(event: K, listener: Function) {
+    this.listeners[event]?.delete(listener as any)
     return this
   }
 

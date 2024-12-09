@@ -12,7 +12,7 @@ export class System<
   entityadd: Entity
   entityremoved: Entity
 }> {
-  readonly query: Readonly<ConstructorOf<T[number]>[]>
+  readonly query!: Readonly<ConstructorOf<T[number]>[]>
   lifecycle: "update" | "draw" = "update"
   engine!: Engine
 
@@ -45,12 +45,11 @@ export function createSystemClass<
   onEntityRemove?: (entity: Entity) => void
 }) {
   return class extends System<{ [K in keyof Q]: InstanceType<Q[K]> }> {
+    // i dont know they the any's are needed but it prevents weird types
     query = args.query as any
-
-    update = args.update
-    draw = args.draw
-
-    onEntityAdd = args.onEntityAdd
-    onEntityRemove = args.onEntityRemove
+    update = args.update as any
+    draw = args.draw as any
+    onEntityAdd = args.onEntityAdd as any
+    onEntityRemove = args.onEntityRemove as any
   }
 }

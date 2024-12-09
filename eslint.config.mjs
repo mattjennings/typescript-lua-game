@@ -18,6 +18,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-function-type": "off",
       // important for lua
       "@typescript-eslint/no-use-before-define": "error",
+      "no-extra-boolean-cast": "off",
     },
   }
 )

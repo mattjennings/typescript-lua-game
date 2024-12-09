@@ -102,10 +102,7 @@ export class AnimationComponent<Key extends string> extends Component<{
 export const AnimationSystem = createSystemClass({
   query: [AnimationComponent, GraphicsComponent] as const,
 
-  update: (
-    event: SceneUpdateEvent,
-    entities: SystemEntities<[AnimationComponent<any>, GraphicsComponent]>
-  ) => {
+  update: (event, entities) => {
     for (const [entity, [animation, graphics]] of entities) {
       animation.update(event.dt)
       graphics.drawable = animation.spritesheet.image

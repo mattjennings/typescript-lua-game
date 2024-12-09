@@ -104,7 +104,7 @@ export class Engine<
       throw new Error(`Scene "${name.toString()}" not found`)
     }
 
-    if (this.currentScene) {
+    if (!!this.currentScene) {
       this.currentScene.off("entityadd", this.onEntityAdd)
       this.currentScene.off("entityremove", this.onEntityRemove)
     }

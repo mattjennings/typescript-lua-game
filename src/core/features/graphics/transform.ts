@@ -1,12 +1,21 @@
-import { Component } from "src/engine/component"
+import { Component } from "src/core/component"
 
-export class TransformComponent extends Component {
+export interface Transform {
+  x: number
+  y: number
+  rotation: number
+  scale: number | [number, number]
+}
+
+export class TransformComponent extends Component implements Transform {
   static type = "transform"
 
   x: number = 0
   y: number = 0
   rotation: number = 0
   scale: number | [number, number] = 1
+
+  prev: Transform
 
   constructor(args: {
     x?: number
@@ -29,6 +38,13 @@ export class TransformComponent extends Component {
 
     if (args.scale || args.scale === 0) {
       this.scale = args.scale
+    }
+
+    this.prev = {
+      x: this.x,
+      y: this.y,
+      rotation: this.rotation,
+      scale: this.scale,
     }
   }
 }

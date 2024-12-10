@@ -1,7 +1,7 @@
 import { ConstructorOf } from "src/types"
 import { Component } from "../component"
 import { EventEmitter, EventNameOf, EventsOf } from "../event-emitter"
-import { Scene } from "../scene"
+import { Scene, SceneUpdateEvent } from "../scene"
 import { Engine } from "../engine"
 
 export class Entity<
@@ -60,8 +60,10 @@ export class Entity<
     }
   }
 
-  // Overloads
-  add<Name extends string, Value>(
+  set<Values extends Record<string, any>>(
+    values: Values
+  ): Entity<C, P & Values, E> & P & Values
+  set<Name extends string, Value>(
     name: Name,
     value: Value
   ): Value extends Component
@@ -69,29 +71,46 @@ export class Entity<
         P & { [K in Name]: Value }
     : Entity<C, P & { [K in Name]: Value }, E> & P & { [K in Name]: Value }
 
-  add<Value extends Component>(component: Value): Entity<C | Value, P, E> & P
-
-  // Implementation
-  add<C extends Component>(...args: [C] | [string, any]): any {
+  set(...args: [string, any] | [Record<string, any>]): any {
     if (typeof args[0] === "string") {
-      // Named component addition
-      const [name, value] = args as [string, Component]
-
+      const [name, value] = args as [string, any]
       if (value instanceof Component) {
-        value.entity = this as any
-        this.components.set(value.constructor, value as any)
-        value.onAdd?.(this as any)
+        this.addComponent(value)
       }
 
       // @ts-ignore
       this[name] = value
       return this as any
-    } else {
-      const [component] = args as [Component]
-      this.components.set(component.constructor, component as any)
-      component.onAdd?.(this as any)
+    } else if (typeof args[0] === "object") {
+      const values = args[0] as Record<string, any>
+      for (const [key, value] of pairs(values)) {
+        this.set(key as string, value)
+      }
       return this as any
     }
+
+    throw new Error(
+      `Unsupported data type for arguments in set. Expected string or object, received ${typeof args[0]}`
+    )
+  }
+
+  addComponent<Value extends Component>(
+    component: Component
+  ): Entity<C | Value, P, E> & P {
+    component.entity = this as any
+    this.components.set(component.constructor, component as any)
+    component.onAdd?.(this as any)
+    return this as any
+  }
+
+  getComponent<Name extends ConstructorOf<Component>>(
+    ctor: Name
+  ): InstanceType<Name> {
+    const componentInstance = this.components.get(ctor)
+    if (!componentInstance) {
+      throw new Error(`Component ${ctor.name} not found`)
+    }
+    return componentInstance as InstanceType<Name>
   }
 
   onSceneEvent<E extends EventNameOf<typeof this.scene>>(
@@ -112,15 +131,31 @@ export class Entity<
     return this
   }
 
-  events<E extends Record<string, unknown>>(): Entity<C, P, E> {
-    return this as any
+  onUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.onSceneEvent("update", listener)
   }
 
-  getComponent<C extends Component>(ctor: ConstructorOf<Component>): C {
-    const componentInstance = this.components.get(ctor)
-    if (!componentInstance) {
-      throw new Error(`Component ${ctor.name} not found`)
-    }
-    return componentInstance as unknown as C
+  onPreUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.onSceneEvent("preupdate", listener)
+  }
+
+  onPostUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.onSceneEvent("postupdate", listener)
+  }
+
+  onDraw(listener: () => void): this {
+    return this.onSceneEvent("draw", listener)
+  }
+
+  onPreDraw(listener: () => void): this {
+    return this.onSceneEvent("predraw", listener)
+  }
+
+  onPostDraw(listener: () => void): this {
+    return this.onSceneEvent("postdraw", listener)
+  }
+
+  events<E extends Record<string, unknown>>(): Entity<C, P, E> {
+    return this as any
   }
 }

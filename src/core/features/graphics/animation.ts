@@ -1,9 +1,9 @@
 import { Quad } from "love.graphics"
 import { Spritesheet } from "./spritesheet"
-import { Component, Entity } from "src/engine"
+import { Component, Entity } from "src/core"
 import { GraphicsComponent } from "./graphics"
-import { SystemEntities, createSystemClass } from "src/engine/system"
-import { SceneUpdateEvent } from "src/engine"
+import { SystemEntities, createSystem } from "src/core/system"
+import { SceneUpdateEvent } from "src/core"
 
 export interface AnimationDefinition {
   quads: Quad[]
@@ -41,7 +41,7 @@ export class AnimationComponent<Key extends string> extends Component<{
 
   onAdd = (entity: Entity<any, any, any>) => {
     if (!entity.components.has(GraphicsComponent)) {
-      entity.add(new GraphicsComponent())
+      entity.addComponent(new GraphicsComponent())
     }
   }
 
@@ -99,7 +99,7 @@ export class AnimationComponent<Key extends string> extends Component<{
   }
 }
 
-export const AnimationSystem = createSystemClass({
+export const AnimationSystem = createSystem({
   query: [AnimationComponent, GraphicsComponent] as const,
 
   update: (event, entities) => {

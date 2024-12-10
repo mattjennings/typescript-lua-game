@@ -30,7 +30,7 @@ export type SystemEntities<
 /**
  * helper function to create a system class with proper types
  */
-export function createSystemClass<
+export function createSystem<
   Q extends Readonly<ConstructorOf<Component>[]>
 >(args: {
   query: Q

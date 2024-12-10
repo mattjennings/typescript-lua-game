@@ -1,8 +1,8 @@
 import { Texture } from "love.graphics"
 import { TransformComponent } from "./transform"
 import { Drawable, Quad } from "love.graphics"
-import { Component } from "src/engine/component"
-import { createSystemClass } from "src/engine/system"
+import { Component } from "src/core/component"
+import { createSystem } from "src/core/system"
 
 export class GraphicsComponent extends Component {
   static type = "graphics"
@@ -35,7 +35,7 @@ export class GraphicsComponent extends Component {
   }
 }
 
-export const GraphicsSystem = createSystemClass({
+export const GraphicsSystem = createSystem({
   query: [GraphicsComponent, TransformComponent] as const,
   draw(entities) {
     for (const [entity, [graphics, transform]] of entities) {

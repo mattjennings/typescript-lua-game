@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tstl",
-    "dev": "concurrently \"tstl --watch\" \"sleep 2 && npm run start\" -c \"bgBlue.bold,bgMagenta.bold\" -n \"tstl,love\"",
+    "dev": "tstl --watch & (sleep 2 && npm run start)",
     "start": "love dist"
   },
   "keywords": [],

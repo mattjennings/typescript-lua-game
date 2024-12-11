@@ -104,16 +104,16 @@ export class Scene extends EventEmitter<{
     }
 
     this.emit("predraw", undefined)
-    this.processUI()
+    this.drawElements()
 
     this.emit("draw", undefined)
     for (const system of this.systems) {
       system.draw?.(this.entitiesBySystem.get(system)!)
     }
-    this.processUI()
+    this.drawElements()
 
     this.emit("postdraw", undefined)
-    this.processUI()
+    this.drawElements()
 
     love.graphics.print(
       `FPS: ${love.timer.getFPS().toString()}`,
@@ -122,11 +122,12 @@ export class Scene extends EventEmitter<{
     )
   }
 
-  processUI() {
-    drawQueue.forEach((draw, i) => {
-      draw?.()
-      drawQueue[i] = undefined
-    })
+  drawElements(elements: JSX.Element[] = drawQueue.get()) {
+    for (const element of elements) {
+      element?.draw?.()
+    }
+
+    drawQueue.clear()
   }
 
   onStart() {}

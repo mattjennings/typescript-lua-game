@@ -1,4 +1,9 @@
 export function printTable(obj: Record<string, any>, depth = 1, prefix = "") {
+  if (obj === undefined) {
+    print("nil")
+    return
+  }
+
   for (const [key, value] of pairs(obj)) {
     if (typeof value === "object" && depth > 0) {
       print(`[${key}] ${value}`)

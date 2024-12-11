@@ -99,10 +99,13 @@ export function createPlayer(x: number, y: number) {
       return (
         <>
           <style
-            color={[1, 1, 1]}
+            color={[0, 1, 1]}
             translate={[player.transform.x, player.transform.y]}
           >
             <print text={player.state.current} />
+            <style color={[1, 0, 1]} translate={[10, 100]}>
+              <print text={"123"} y={-10} />
+            </style>
           </style>
         </>
       )

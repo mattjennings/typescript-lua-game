@@ -4,6 +4,7 @@ import {
   AlignMode,
   ColouredText,
   CompareMode,
+  draw,
   Drawable,
   DrawMode,
   Mesh,
@@ -13,21 +14,38 @@ import {
 } from "love.graphics"
 import { printTable } from "../debug/print"
 
-export let drawQueue: Array<Function | undefined> = []
+let _queue: Array<JSX.Element> = []
+
+export let drawQueue = {
+  get: () => _queue,
+  add: (element: JSX.Element) => _queue.push(element),
+  remove: (element: JSX.Element) => {
+    const index = _queue.indexOf(element)
+    if (index !== -1) {
+      _queue.splice(index, 1)
+    }
+  },
+  clear: () => (_queue = []),
+}
 
 export function createElement(
   type: string | Function,
   props: Record<string, any> = {},
-  children: number[] = []
-) {
+  ...children: Array<JSX.Element>
+): JSX.Element {
   if (typeof type === "function") {
     return type({ ...props, children })
+  }
+
+  const element: JSX.Element = {
+    type,
+    props,
   }
 
   switch (type) {
     case "arc": {
       let p = props as JSX.IntrinsicElements["arc"]
-      drawQueue.push(() => {
+      element.draw = () => {
         if (typeof p.segments === "number") {
           love.graphics.arc(
             p.mode,
@@ -48,13 +66,14 @@ export function createElement(
             p.angle2
           )
         }
-      })
+      }
+
       break
     }
     case "circle":
       {
         let p = props as JSX.IntrinsicElements["circle"]
-        drawQueue.push(() => {
+        element.draw = () => {
           if (typeof p.segments === "number") {
             love.graphics.circle(
               p.mode,
@@ -66,13 +85,13 @@ export function createElement(
           } else {
             love.graphics.circle(p.mode, p.x ?? 0, p.y ?? 0, p.radius)
           }
-        })
+        }
       }
       break
 
     case "draw": {
       let p = props as JSX.IntrinsicElements["draw"]
-      drawQueue.push(() => {
+      element.draw = () => {
         {
           if (p.quad) {
             love.graphics.draw(
@@ -103,12 +122,12 @@ export function createElement(
             )
           }
         }
-      })
+      }
       break
     }
     case "draw-instanced": {
       let p = props as JSX.IntrinsicElements["draw-instanced"]
-      drawQueue.push(() => {
+      element.draw = () => {
         love.graphics.drawInstanced(
           p.mesh,
           p.instancecount,
@@ -122,12 +141,12 @@ export function createElement(
           p.kx,
           p.ky
         )
-      })
+      }
       break
     }
     case "draw-layer": {
       let p = props as JSX.IntrinsicElements["draw-layer"]
-      drawQueue.push(() => {
+      element.draw = () => {
         if (p.quad) {
           love.graphics.drawLayer(
             p.texture,
@@ -158,12 +177,12 @@ export function createElement(
             p.ky
           )
         }
-      })
+      }
       break
     }
     case "ellipse": {
       let p = props as JSX.IntrinsicElements["ellipse"]
-      drawQueue.push(() => {
+      element.draw = () => {
         if (typeof p.segments === "number") {
           love.graphics.ellipse(
             p.mode,
@@ -176,27 +195,27 @@ export function createElement(
         } else {
           love.graphics.ellipse(p.mode, p.x ?? 0, p.y ?? 0, p.rx, p.ry)
         }
-      })
+      }
       break
     }
     case "line": {
       let p = props as JSX.IntrinsicElements["line"]
-      drawQueue.push(() => {
+      element.draw = () => {
         love.graphics.line(...p.points)
-      })
+      }
       break
     }
     case "polygon": {
       let p = props as JSX.IntrinsicElements["polygon"]
-      drawQueue.push(() => {
+      element.draw = () => {
         love.graphics.polygon(p.mode, p.xys)
-      })
+      }
       break
     }
 
     case "print": {
       let p = props as JSX.IntrinsicElements["print"]
-      drawQueue.push(() =>
+      element.draw = () =>
         love.graphics.print(
           p.text,
           p.x,
@@ -209,12 +228,12 @@ export function createElement(
           p.kx,
           p.ky
         )
-      )
+
       break
     }
     case "printf": {
       let p = props as JSX.IntrinsicElements["printf"]
-      drawQueue.push(() =>
+      element.draw = () =>
         love.graphics.printf(
           p.text,
           p.x ?? 0,
@@ -229,16 +248,12 @@ export function createElement(
           p.kx,
           p.ky
         )
-      )
-      break
-    }
-    case "raw": {
-      drawQueue.push(() => children)
+
       break
     }
     case "rectangle": {
       let p = props as JSX.IntrinsicElements["rectangle"]
-      drawQueue.push(() => {
+      element.draw = () => {
         if (typeof p.segments === "number") {
           love.graphics.rectangle(
             p.mode,
@@ -261,7 +276,7 @@ export function createElement(
             p.ry
           )
         }
-      })
+      }
       break
     }
     case "style": {
@@ -364,28 +379,27 @@ export function createElement(
 
       const reset = () => {
         love.graphics.pop()
-        love.graphics.reset()
+        love.graphics.setColor(1, 1, 1, 1) // unsure why this isnt included in graphics.pop
       }
 
-      // unsure why but only 1 child is in this array. but it seems we can rely
-      // on it being the start and drawQueue.length being the end at this point in the render
-      const queueStart = children[0]
-      const queueEnd = drawQueue.length
-
-      if (queueStart >= 0) {
-        drawQueue.splice(queueStart, 0, set)
-        drawQueue.splice(queueEnd + 1, 0, reset)
+      element.draw = () => {
+        set()
+        for (const child of children) {
+          child?.draw?.()
+        }
+        reset()
       }
+
+      // remove other children
+      for (const child of children) {
+        drawQueue.remove(child)
+      }
+      break
     }
   }
 
-  const ln = drawQueue.length > 0 ? drawQueue.length - 1 : 0
-
-  if (children.length > 0) {
-    return [ln, ...children]
-  }
-
-  return [ln]
+  drawQueue.add(element)
+  return element
 }
 
 export function Fragment(props: any) {
@@ -394,7 +408,11 @@ export function Fragment(props: any) {
 
 declare global {
   namespace JSX {
-    type Element = any
+    type Element = {
+      type: string | Function
+      props: Record<string, any>
+      draw?: () => void
+    } | null
 
     interface IntrinsicElements {
       arc: {
@@ -502,7 +520,6 @@ declare global {
         kx?: number
         ky?: number
       }
-      raw: { children: () => void }
       rectangle: {
         mode: DrawMode
         x?: number

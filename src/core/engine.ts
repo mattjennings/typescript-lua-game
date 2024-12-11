@@ -1,3 +1,4 @@
+import "./features/ui"
 import { ConstructorOf } from "src/types"
 import { EventEmitter } from "./event-emitter"
 import { Scene } from "./scene"

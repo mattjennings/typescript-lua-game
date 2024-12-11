@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tstl",
-    "dev": "tstl --watch & (sleep 2 && npm run start)",
+    "dev": "concurrently \"tstl --watch\" \"sleep 2 && npm run start\" -c \"bgBlue.bold,bgMagenta.bold\" -n \"tstl,love\"",
     "start": "love dist"
   },
   "keywords": [],
@@ -12,6 +12,7 @@
   "description": "",
   "devDependencies": {
     "@eslint/js": "^9.16.0",
+    "concurrently": "^9.1.0",
     "eslint": "^9.16.0",
     "love-typescript-definitions": "^11.5.0",
     "lua-types": "^2.13.1",

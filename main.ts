@@ -16,6 +16,16 @@ love.load = () => {
       const [x, y, width, height] = love.window.getSafeArea()
 
       this.addEntity(createPlayer(100, 100))
+
+      // randomly create within safe area
+      for (let i = 0; i < 0; i++) {
+        this.addEntity(
+          createPlayer(
+            love.math.random(x, width),
+            love.math.random(y, height) + 10
+          )
+        )
+      }
     }
 
     onStart(): void {

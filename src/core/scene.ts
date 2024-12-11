@@ -2,6 +2,7 @@ import { Engine } from "./engine"
 import { Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
 import { System, SystemEntities } from "./system"
+import { drawQueue } from "./features/ui/jsx"
 
 export class Scene extends EventEmitter<{
   preupdate: { dt: number }
@@ -103,19 +104,29 @@ export class Scene extends EventEmitter<{
     }
 
     this.emit("predraw", undefined)
-    this.emit("draw", undefined)
+    this.processUI()
 
+    this.emit("draw", undefined)
     for (const system of this.systems) {
       system.draw?.(this.entitiesBySystem.get(system)!)
     }
+    this.processUI()
 
     this.emit("postdraw", undefined)
+    this.processUI()
 
     love.graphics.print(
       `FPS: ${love.timer.getFPS().toString()}`,
       love.window.getSafeArea()[2] - 60,
       0
     )
+  }
+
+  processUI() {
+    drawQueue.forEach((draw, i) => {
+      draw?.()
+      drawQueue[i] = undefined
+    })
   }
 
   onStart() {}

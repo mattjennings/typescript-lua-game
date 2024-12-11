@@ -96,10 +96,15 @@ export function createPlayer(x: number, y: number) {
       }
     })
     .onPostDraw(function () {
-      love.graphics.print(
-        player.state.current,
-        player.transform.x,
-        player.transform.y - 20
+      return (
+        <>
+          <style
+            color={[1, 1, 1]}
+            translate={[player.transform.x, player.transform.y]}
+          >
+            <print text={player.state.current} />
+          </style>
+        </>
       )
     })
 

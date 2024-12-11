@@ -5,6 +5,9 @@
     "outDir": "dist",
     "target": "ESNext",
     "lib": ["ESNext"],
+    "jsx": "react",
+    "jsxFactory": "__UI.createElement",
+    "jsxFragmentFactory": "__UI.Fragment",
     "moduleResolution": "Node",
     "types": [
       "love-typescript-definitions",

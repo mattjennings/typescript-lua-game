@@ -12,7 +12,6 @@ import {
   Shader,
   Texture,
 } from "love.graphics"
-import { printTable } from "../debug/print"
 
 let _queue: Array<JSX.Element> = []
 

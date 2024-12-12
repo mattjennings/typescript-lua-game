@@ -143,6 +143,18 @@ export class Entity<
     return this.onSceneEvent("postupdate", listener)
   }
 
+  onPreFixedUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.onSceneEvent("prefixedupdate", listener)
+  }
+
+  onFixedUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.onSceneEvent("fixedupdate", listener)
+  }
+
+  onPostFixedUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.onSceneEvent("postfixedupdate", listener)
+  }
+
   onDraw(listener: () => void): this {
     return this.onSceneEvent("draw", listener)
   }

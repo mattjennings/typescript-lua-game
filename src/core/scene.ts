@@ -3,11 +3,15 @@ import { Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
 import { System, SystemEntities } from "./system"
 import { drawQueue } from "./features/ui/jsx"
+import { ConstructorOf } from "src/types"
 
 export class Scene extends EventEmitter<{
   preupdate: { dt: number }
   update: { dt: number }
   postupdate: { dt: number }
+  prefixedupdate: { dt: number }
+  fixedupdate: { dt: number }
+  postfixedupdate: { dt: number }
   predraw: void
   draw: void
   postdraw: void
@@ -20,17 +24,12 @@ export class Scene extends EventEmitter<{
   elapsedTime = 0
 
   protected systems: System[] = []
-  private entitiesBySystem = new LuaMap<System, SystemEntities>()
+  private entitiesBySystem = new LuaMap<
+    System,
+    SystemEntities<readonly ConstructorOf<any>[]>
+  >()
 
-  constructor() {
-    super()
-
-    for (const system of this.systems) {
-      this.entitiesBySystem.set(system, new LuaMap())
-    }
-  }
-
-  addEntity(entity: Entity<any, any, any>) {
+  addEntity<T extends Entity>(entity: T) {
     entity.scene = this
     entity.emit("add", this)
     this.emit("entityadd", entity)
@@ -59,6 +58,8 @@ export class Scene extends EventEmitter<{
         this.entitiesBySystem.get(system)!.set(entity, components)
       }
     }
+
+    return entity
   }
 
   removeEntity(entity: Entity<any, any, any>, destroy = false) {
@@ -92,10 +93,26 @@ export class Scene extends EventEmitter<{
     this.elapsedTime += args.dt
 
     for (const system of this.systems) {
-      system.update?.(args, this.entitiesBySystem.get(system)!)
+      system.update?.(this.entitiesBySystem.get(system)! ?? new LuaMap(), args)
     }
 
     this.emit("postupdate", args)
+  }
+
+  fixedUpdate(args: { dt: number }) {
+    if (this.paused) {
+      return
+    }
+
+    this.emit("prefixedupdate", args)
+    this.emit("fixedupdate", args)
+    for (const system of this.systems) {
+      system.fixedUpdate?.(
+        this.entitiesBySystem.get(system) ?? new LuaMap(),
+        args
+      )
+    }
+    this.emit("postfixedupdate", args)
   }
 
   draw() {
@@ -108,7 +125,7 @@ export class Scene extends EventEmitter<{
 
     this.emit("draw", undefined)
     for (const system of this.systems) {
-      system.draw?.(this.entitiesBySystem.get(system)!)
+      system.draw?.(this.entitiesBySystem.get(system) ?? new LuaMap())
     }
     this.drawElements()
 

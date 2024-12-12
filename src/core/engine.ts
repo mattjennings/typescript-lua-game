@@ -22,6 +22,7 @@ export class Engine<
   TEngine extends EngineDefinition<TSceneKey> = EngineDefinition<TSceneKey>
 > extends EventEmitter<{
   update: { dt: number }
+  fixedupdate: { dt: number }
   draw: void
   scenechange: { name: EngineScene<TEngine>; scene: Scene }
 }> {
@@ -29,6 +30,7 @@ export class Engine<
   scenes: Record<EngineScene<TEngine>, Scene> = {} as any
   currentScene!: Scene
 
+  private accumulator = 0
   elapsedTime = 0
 
   paused = false
@@ -65,6 +67,15 @@ export class Engine<
       this.emit("update", args)
       this.elapsedTime += args.dt
       this.currentScene.update(args)
+
+      this.accumulator += args.dt
+
+      while (this.accumulator > 0) {
+        this.accumulator -= args.dt
+        const fixedDt = 1 / 60
+        this.emit("fixedupdate", { dt: fixedDt })
+        this.currentScene.fixedUpdate({ dt: fixedDt })
+      }
     }
   }
 

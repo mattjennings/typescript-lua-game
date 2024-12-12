@@ -2,54 +2,50 @@ import { ConstructorOf } from "src/types"
 import { Engine } from "../engine"
 import { Entity } from "../entity"
 import { EventEmitter } from "../event-emitter"
-
 import { Component } from "../component"
-import { SceneUpdateEvent } from "../scene"
+
+export type SystemQuery<T extends Readonly<Component[]>> = Readonly<{
+  [K in keyof T]: ConstructorOf<T[K]>
+}>
+
+export type SystemEntities<T extends SystemQuery<any>> = LuaMap<
+  Entity,
+  {
+    [K in keyof T]: InstanceType<T[K]>
+  }
+>
 
 export class System<
-  T extends Readonly<Component[]> = Readonly<Component[]>
+  T extends SystemQuery<any> = SystemQuery<any>
 > extends EventEmitter<{
   entityadd: Entity
   entityremoved: Entity
 }> {
-  readonly query!: Readonly<ConstructorOf<T[number]>[]>
-  lifecycle: "update" | "draw" = "update"
+  readonly query!: T
   engine!: Engine
 
-  update?: (event: SceneUpdateEvent, entities: SystemEntities<T>) => void
-  draw?: (entities: SystemEntities<T>) => void
+  update?: (entities: any, event: UpdateEvent) => void
+  fixedUpdate?: (entities: any, event: UpdateEvent) => void
+  draw?: (entities: any) => void
 
   onEntityAdd = (entity: Entity) => {}
   onEntityRemove = (entity: Entity) => {}
 }
 
-export type SystemEntities<
-  T extends Readonly<Component[]> = Readonly<Component[]>
-> = LuaMap<Entity, T>
+export type SystemUpdateFn<T extends SystemQuery<any>> = (
+  entities: SystemEntities<T>,
+  event: UpdateEvent
+) => void
 
-/**
- * helper function to create a system class with proper types
- */
-export function createSystem<
-  Q extends Readonly<ConstructorOf<Component>[]>
->(args: {
-  query: Q
-  update?: (
-    event: SceneUpdateEvent,
-    entities: SystemEntities<{ [K in keyof Q]: InstanceType<Q[K]> }>
-  ) => void
-  draw?: (
-    entities: SystemEntities<{ [K in keyof Q]: InstanceType<Q[K]> }>
-  ) => void
-  onEntityAdd?: (entity: Entity) => void
-  onEntityRemove?: (entity: Entity) => void
-}) {
-  return class extends System<{ [K in keyof Q]: InstanceType<Q[K]> }> {
-    // i dont know they the any's are needed but it prevents weird types
-    query = args.query as any
-    update = args.update as any
-    draw = args.draw as any
-    onEntityAdd = args.onEntityAdd as any
-    onEntityRemove = args.onEntityRemove as any
-  }
+export type SystemDrawFn<T extends SystemQuery<any>> = (
+  entities: SystemEntities<T>
+) => void
+
+export type SystemFixedUpdateFn<T extends SystemQuery<any>> = (
+  entities: SystemEntities<T>,
+  event: UpdateEvent
+) => void
+
+export type UpdateEvent = {
+  dt: number
 }

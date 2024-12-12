@@ -2,8 +2,7 @@ import { Quad } from "love.graphics"
 import { Spritesheet } from "./spritesheet"
 import { Component, Entity } from "src/core"
 import { GraphicsComponent } from "./graphics"
-import { SystemEntities, createSystem } from "src/core/system"
-import { SceneUpdateEvent } from "src/core"
+import { System, SystemEntities, SystemQuery } from "src/core/system"
 
 export interface AnimationDefinition {
   quads: Quad[]
@@ -99,14 +98,15 @@ export class AnimationComponent<Key extends string> extends Component<{
   }
 }
 
-export const AnimationSystem = createSystem({
-  query: [AnimationComponent, GraphicsComponent] as const,
+type Query = SystemQuery<[AnimationComponent<any>, GraphicsComponent]>
+export class AnimationSystem extends System<Query> {
+  query = [AnimationComponent, GraphicsComponent] as const
 
-  update: (event, entities) => {
+  update = (entities: SystemEntities<Query>, event: any) => {
     for (const [entity, [animation, graphics]] of entities) {
       animation.update(event.dt)
       graphics.drawable = animation.spritesheet.image
       graphics.quad = animation.currentAnimation.quads[animation.currentFrame]
     }
-  },
-})
+  }
+}

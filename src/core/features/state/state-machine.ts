@@ -1,5 +1,4 @@
 import { Component, Entity } from "src/core"
-import { printTable } from "../debug/print"
 
 export interface StateDefinition<
   TState extends string,

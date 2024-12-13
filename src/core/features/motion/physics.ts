@@ -12,6 +12,18 @@ type Query = SystemQuery<[BodyComponent, TransformComponent]>
 
 export class PhysicsSystem extends System<Query> {
   query = [BodyComponent, TransformComponent] as const
+  gravity = new Vec2(0, 0.01)
+
+  constructor({
+    gravity,
+  }: {
+    gravity?: Vec2
+  } = {}) {
+    super()
+    if (gravity) {
+      this.gravity = gravity
+    }
+  }
 
   fixedUpdate: SystemUpdateFn<Query> = (entities, { dt }) => {
     for (const [entity, [body, transform]] of entities) {
@@ -21,7 +33,12 @@ export class PhysicsSystem extends System<Query> {
         .scale(body.friction)
 
       if (body.gravity && !body.static) {
-        velocity.y += 0.01 * dt * dt * 1000 * 1000
+        velocity.add(
+          this.gravity
+            .clone()
+            .scale(dt ** 2)
+            .scale(1000 ** 2)
+        )
       }
 
       transform.position.add(velocity)

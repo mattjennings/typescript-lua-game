@@ -56,7 +56,7 @@ function createRope(args: {
           transform: new TransformComponent({
             position: args.position
               .clone()
-              .add(new Vec2(0, i * segmentDistance)),
+              .add(new Vec2(0, (i + 1) * segmentDistance)),
           }),
         })
       }),

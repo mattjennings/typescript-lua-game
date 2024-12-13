@@ -111,11 +111,11 @@ export class StickConstraint extends Constraint {
     const bTransform = this.entityB.getComponent(TransformComponent)
     const aBody = this.entityA.getComponent(BodyComponent)
     const bBody = this.entityB.getComponent(BodyComponent)
-    const p1Vec = aTransform.position.clone()
-    const p2Vec = bTransform.position.clone()
+    const aPosition = aTransform.position.clone()
+    const bPosition = bTransform.position.clone()
 
-    const stickCenter = p1Vec.add(p2Vec).scale(0.5)
-    const stickDir = p2Vec.sub(p1Vec).normalize()
+    const stickCenter = aPosition.add(bPosition).scale(0.5)
+    const stickDir = bPosition.sub(aPosition).normalize()
 
     if (!aBody?.static) {
       aTransform.position.x = stickCenter.x - (stickDir.x * this.distance) / 2
@@ -130,7 +130,7 @@ export class StickConstraint extends Constraint {
 }
 
 export class RopeConstraint extends Constraint {
-  iterations = 30
+  iterations = 10
   private constraints: Constraint[] = []
 
   constructor(

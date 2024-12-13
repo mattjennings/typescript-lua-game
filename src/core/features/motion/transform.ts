@@ -36,9 +36,9 @@ export class TransformComponent extends Component implements Transform {
     }
 
     this.prev = {
-      position: this.position,
+      position: this.position.clone(),
       rotation: this.rotation,
-      scale: this.scale,
+      scale: this.scale.clone(),
     }
   }
 }

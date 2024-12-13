@@ -5,6 +5,10 @@ import { Scene } from "./scene"
 import { System } from "./system"
 import { Entity } from "./entity"
 import { Component } from "./component"
+import { system } from "love"
+import { pause } from "love.audio"
+import { draw } from "love.graphics"
+import { KeyConstant, Scancode } from "love.keyboard"
 
 export interface EngineArgs<TSceneKey extends string> {
   systems: System[]
@@ -37,10 +41,12 @@ export class Engine<
   paused = false
   started = false
 
+  private debugStepMode = false
+  private debugStep = false
+
   constructor(args: EngineArgs<TSceneKey>) {
     super()
 
-    // systems
     for (const system of args.systems) {
       this.addSystem(system)
     }
@@ -50,11 +56,32 @@ export class Engine<
         return
       }
 
-      this.update({ dt })
+      if (this.debugStepMode) {
+        if (this.debugStep) {
+          this.update({ dt })
+          this.debugStep = false
+        }
+      } else {
+        this.update({ dt })
+      }
     }
 
     love.draw = () => {
       this.draw()
+    }
+
+    love.keypressed = (
+      key: KeyConstant,
+      scancode: Scancode,
+      isrepeat: boolean
+    ) => {
+      if (key === "`") {
+        this.debugStepMode = !this.debugStepMode
+      }
+
+      if (this.debugStepMode && key === "space") {
+        this.debugStep = true
+      }
     }
   }
 

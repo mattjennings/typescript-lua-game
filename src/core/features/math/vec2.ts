@@ -22,6 +22,12 @@ export class Vec2 {
     }
   }
 
+  set(v: Vec2) {
+    this.x = v.x
+    this.y = v.y
+    return this
+  }
+
   add(v: Vec2) {
     this.x += v.x
     this.y += v.y
@@ -85,6 +91,10 @@ export class Vec2 {
 
   clone() {
     return new Vec2(this.x, this.y)
+  }
+
+  isZero() {
+    return this.x === 0 && this.y === 0
   }
 
   static fromAngle(angle: number) {

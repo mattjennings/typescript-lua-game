@@ -3,6 +3,7 @@ import { System, SystemFixedUpdateFn, SystemQuery } from "src/core/system"
 import { TransformComponent } from "./transform"
 import { BodyComponent } from "./body"
 import { Entity, EntityWithComponent } from "src/core/entity"
+import { Vec2 } from "../math"
 
 export class ConstraintsComponent extends Component {
   constraints = new LuaSet<Constraint>()
@@ -78,24 +79,58 @@ export class DistanceConstraint extends Constraint {
     const delta = bTransform.position.clone().sub(aTransform.position)
 
     const currentDistance = Math.sqrt(delta.x ** 2 + delta.y ** 2)
-    const correctionFactor =
-      (this.distance - currentDistance) / currentDistance / 2
-
-    const offset = delta.clone().scale(correctionFactor)
+    const correctionFactor = (this.distance - currentDistance) / currentDistance
 
     if (aBody?.static) {
-      bTransform.position = bTransform.position.add(offset).scale(2)
+      bTransform.position.add(delta.clone().scale(correctionFactor))
     } else if (bBody?.static) {
-      aTransform.position = aTransform.position.sub(offset).scale(2)
+      aTransform.position.sub(delta.clone().scale(correctionFactor))
     } else {
-      aTransform.position = aTransform.position.sub(offset)
-      bTransform.position = bTransform.position.add(offset)
+      const offset = delta.scale(0.5).clone().scale(correctionFactor)
+      aTransform.position.sub(offset)
+      bTransform.position.add(offset)
+    }
+  }
+}
+
+export class StickConstraint extends Constraint {
+  constructor(
+    private entityA:
+      | EntityWithComponent<[TransformComponent]>
+      | EntityWithComponent<[TransformComponent, BodyComponent]>,
+    private entityB:
+      | EntityWithComponent<[TransformComponent]>
+      | EntityWithComponent<[TransformComponent, BodyComponent]>,
+    private distance: number
+  ) {
+    super()
+  }
+
+  applyOnce = () => {
+    const aTransform = this.entityA.getComponent(TransformComponent)
+    const bTransform = this.entityB.getComponent(TransformComponent)
+    const aBody = this.entityA.getComponent(BodyComponent)
+    const bBody = this.entityB.getComponent(BodyComponent)
+    const p1Vec = aTransform.position.clone()
+    const p2Vec = bTransform.position.clone()
+
+    const stickCenter = p1Vec.add(p2Vec).scale(0.5)
+    const stickDir = p2Vec.sub(p1Vec).normalize()
+
+    if (!aBody?.static) {
+      aTransform.position.x = stickCenter.x - (stickDir.x * this.distance) / 2
+      aTransform.position.y = stickCenter.y - (stickDir.y * this.distance) / 2
+    }
+
+    if (!bBody?.static) {
+      bTransform.position.x = stickCenter.x + (stickDir.x * this.distance) / 2
+      bTransform.position.y = stickCenter.y + (stickDir.y * this.distance) / 2
     }
   }
 }
 
 export class RopeConstraint extends Constraint {
-  iterations = 1
+  iterations = 30
   private constraints: Constraint[] = []
 
   constructor(
@@ -105,7 +140,7 @@ export class RopeConstraint extends Constraint {
     super()
     for (let i = 0; i < entities.length - 1; i++) {
       this.constraints.push(
-        new DistanceConstraint(entities[i], entities[i + 1], segmentLength)
+        new StickConstraint(entities[i], entities[i + 1], segmentLength)
       )
     }
   }

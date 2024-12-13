@@ -18,7 +18,7 @@ export class PhysicsSystem extends System<Query> {
       const velocity = transform.position
         .clone()
         .sub(transform.prev.position)
-        .mul(new Vec2(body.friction, body.friction))
+        .scale(body.friction)
 
       if (body.gravity && !body.static) {
         velocity.y += 0.01 * dt * dt * 1000 * 1000

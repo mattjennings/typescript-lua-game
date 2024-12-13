@@ -14,57 +14,14 @@ import {
   ConstraintsComponent,
   RopeConstraint,
 } from "src/core/features/motion/constraints"
-import { GraphicsComponent } from "src/core/features/graphics"
 
 love.load = () => {
   class Level1 extends engine.Scene {
     constructor() {
       super()
       this.addEntity(
-        createRope({ position: new Vec2(400, 100), segments: 10, length: 40 })
+        createRope({ position: new Vec2(400, 100), segments: 10, length: 300 })
       )
-
-      // this.points.forEach((point) => this.addEntity(point))
-      // this.sticks.forEach((stick) => this.addEntity(stick))
-
-      // love.keypressed = (key) => {
-      //   if (key === "space") {
-      //     love.load()
-      //   }
-      // }
-
-      // this.on("update", ({ dt }) => {
-      //   const m = love.mouse.getPosition()
-
-      //   if (m[0] && m[1]) {
-      //     this.points[this.points.length - 1].transform.position.x = m[0]
-      //     this.points[this.points.length - 1].transform.position.y = m[1]
-      //   }
-
-      //   for (let i = 0; i < 10; i++) {
-      //     for (const stick of this.sticks) {
-      //       const p1Vec = stick.p1.transform.position.clone()
-      //       const p2Vec = stick.p2.transform.position.clone()
-
-      //       const stickCenter = p1Vec.add(p2Vec).div(new Vec2(2, 2))
-      //       const stickDir = p2Vec.sub(p1Vec).normalize()
-
-      //       if (!stick.p1.locked) {
-      //         stick.p1.transform.position.x =
-      //           stickCenter.x - (stickDir.x * stick.length) / 2
-      //         stick.p1.transform.position.y =
-      //           stickCenter.y - (stickDir.y * stick.length) / 2
-      //       }
-
-      //       if (!stick.p2.locked) {
-      //         stick.p2.transform.position.x =
-      //           stickCenter.x + (stickDir.x * stick.length) / 2
-      //         stick.p2.transform.position.y =
-      //           stickCenter.y + (stickDir.y * stick.length) / 2
-      //       }
-      //     }
-      //   }
-      // })
     }
 
     onStart(): void {
@@ -76,95 +33,39 @@ love.load = () => {
   engine.start({ scene: "level1" })
 }
 
-// function createPoint(x: number, y: number, locked = false) {
-//   const point = new engine.Entity("point")
-//     .set({
-//       locked,
-//       transform: new TransformComponent({ position: { x, y } }),
-//       body: new BodyComponent({
-//         gravity: !locked,
-//         friction: 0.1,
-//       }),
-//     })
-//     .onUpdate(({ dt }) => {
-//       if (love.keyboard.isDown("left")) {
-//         point.transform.position.x -= 10
-//       }
-
-//       if (love.keyboard.isDown("right")) {
-//         point.transform.position.x += 10
-//       }
-//     })
-//     .onDraw(() => {
-//       love.graphics.setColor(1, 0, 0)
-//       love.graphics.circle(
-//         "fill",
-//         point.transform.position.x,
-//         point.transform.position.y,
-//         10
-//       )
-//       love.graphics.setColor(1, 1, 1)
-//     })
-
-//   return point
-// }
-
-// type Point = ReturnType<typeof createPoint>
-// function createStick(p1: Point, p2: Point, length = 40) {
-//   const stick = new engine.Entity("stick")
-//     .set({
-//       p1,
-//       p2,
-//       length,
-//       transform: new TransformComponent({
-//         position: p1.transform.position.clone(),
-//       }),
-//     })
-//     .onDraw(() => {
-//       love.graphics.setColor(1, 1, 1)
-//       love.graphics.line(
-//         p1.transform.position.x,
-//         p1.transform.position.y,
-//         p2.transform.position.x,
-//         p2.transform.position.y
-//       )
-//     })
-
-//   return stick
-// }
-
 function createRope(args: {
   position: Vec2
   segments: number
   length: number
 }) {
-  // const abc = engine
-  //   .createEntity("rope")
-  //   .set({ ab: true })
-  //   .self((abc) =>
-  //     abc
-  //       .addComponent(new GraphicsComponent())
-  //       .addComponent(new TransformComponent())
-  //   )
-  // // .set({ graphics: new GraphicsComponent(), a: new TransformComponent() })
-  // // .addComponent(new GraphicsComponent())
+  const segmentDistance = args.length / args.segments - 1
+
   return engine
     .createEntity("rope")
     .set({
-      segments: Array.from({ length: args.segments }, (_, i) =>
-        engine.createEntity("rope-segment").set({
-          body: new BodyComponent({ gravity: i !== 0 }),
+      transform: new TransformComponent({ position: args.position }),
+      body: new BodyComponent({ static: true }),
+    })
+    .set({
+      // disperse segments at most args.length from end to end
+      segments: Array.from({ length: args.segments - 1 }, (_, i) => {
+        return engine.createEntity(`rope-segment-${i}`).set({
+          body: new BodyComponent({
+            friction: 0.1,
+          }),
           transform: new TransformComponent({
-            position: args.position.clone().add(new Vec2(0, i * args.length)),
+            position: args.position
+              .clone()
+              .add(new Vec2(0, i * segmentDistance)),
           }),
         })
-      ),
+      }),
     })
     .self((rope) =>
       rope
         .addComponent(
           new ConstraintsComponent([
-            new RopeConstraint(rope.segments, args.length),
+            new RopeConstraint([rope, ...rope.segments], segmentDistance),
           ])
         )
         .onAdd((scene) => {
@@ -177,21 +78,56 @@ function createRope(args: {
             segment.destroy()
           }
         })
-        .onDraw(() => {
-          love.graphics.setColor(1, 1, 1)
-          for (let i = 0; i < args.segments - 1; i++) {
-            const p1 = rope.segments[i].transform.position
-            const p2 = rope.segments[i + 1].transform.position
-            love.graphics.setColor(1, 0, 0)
-            love.graphics.circle("fill", p1.x, p1.y, 5)
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.line(p1.x, p1.y, p2.x, p2.y)
+        .onPreFixedUpdate(({ dt }) => {
+          const mouse = love.mouse.getPosition()
 
-            if (i === args.segments - 2) {
+          // rope.transform.position = new Vec2(mouse[0], mouse[1])
+          rope.segments[3].transform.position = new Vec2(mouse[0], mouse[1])
+        })
+        .onDraw(() => {
+          love.graphics.setColor(0, 1, 0)
+          love.graphics.circle("fill", args.position.x, args.position.y, 5)
+          love.graphics.setColor(1, 1, 1)
+          love.graphics.line(
+            args.position.x,
+            args.position.y,
+            rope.segments[0].transform.position.x,
+            rope.segments[0].transform.position.y
+          )
+          for (let i = 0; i < rope.segments.length; i++) {
+            const p1 = rope.segments[i]
+            const p2 = rope.segments[i + 1]
+
+            if (!!p1) {
               love.graphics.setColor(1, 0, 0)
-              love.graphics.circle("fill", p2.x, p2.y, 5)
+              love.graphics.circle(
+                "fill",
+                p1.transform.position.x,
+                p1.transform.position.y,
+                5
+              )
             }
             love.graphics.setColor(1, 1, 1)
+
+            if (!!p2) {
+              love.graphics.line(
+                p1.transform.position.x,
+                p1.transform.position.y,
+                p2.transform.position.x,
+                p2.transform.position.y
+              )
+
+              if (i === args.segments - 2) {
+                love.graphics.setColor(1, 0, 0)
+                love.graphics.circle(
+                  "fill",
+                  p2.transform.position.x,
+                  p2.transform.position.y,
+                  5
+                )
+              }
+              love.graphics.setColor(1, 1, 1)
+            }
           }
         })
     )

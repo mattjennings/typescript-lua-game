@@ -42,13 +42,16 @@ export class BodyComponent extends Component {
 
   gravity = true
   friction = 0.9
-  type: "dynamic" | "fixed" = "dynamic"
+  static = false
 
-  constructor(args: { gravity?: boolean; friction?: number } = {}) {
+  constructor(
+    args: { static?: boolean; gravity?: boolean; friction?: number } = {}
+  ) {
     super()
 
     this.gravity = args.gravity ?? this.gravity
     this.friction = args.friction ?? this.friction
+    this.static = args.static ?? this.static
   }
 
   get velocity() {

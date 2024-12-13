@@ -4,6 +4,7 @@ import { EventEmitter } from "./event-emitter"
 import { Scene } from "./scene"
 import { System } from "./system"
 import { Entity } from "./entity"
+import { Component } from "./component"
 
 export interface EngineArgs<TSceneKey extends string> {
   systems: System[]
@@ -145,13 +146,20 @@ export class Engine<
     return ctor
   }
 
-  get Entity() {
-    const _engine = this as Engine<TSceneKey>
-    const ctor = class extends Entity {
-      engine = _engine
-    }
+  createEntity<
+    Comp extends Component<any>[] = [],
+    Props extends Record<string, any> = {},
+    Events extends Record<string, unknown> = {},
+    Ent extends Entity<Comp, Props, Events, Engine<TSceneKey>> = Entity<
+      Comp,
+      Props,
+      Events,
+      Engine<TSceneKey>
+    >
+  >(name: string): Ent {
+    const entity = new Entity(this, name)
 
-    return ctor
+    return entity as any as Ent
   }
 
   timer = {

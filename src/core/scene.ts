@@ -1,5 +1,5 @@
 import { Engine } from "./engine"
-import { Entity } from "./entity"
+import { AnyEntity, Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
 import { System, SystemEntities } from "./system"
 import { drawQueue } from "./features/ui/jsx"
@@ -29,7 +29,7 @@ export class Scene extends EventEmitter<{
     SystemEntities<readonly ConstructorOf<any>[]>
   >()
 
-  addEntity<T extends Entity>(entity: T) {
+  addEntity<T extends AnyEntity>(entity: T) {
     entity.scene = this
     entity.emit("add", this)
     this.emit("entityadd", entity)
@@ -42,9 +42,9 @@ export class Scene extends EventEmitter<{
       }
 
       let isForSystem = true
-      const components = []
+      const components: any[] = []
       for (const ctor of system.query) {
-        const component = entity.components.get(ctor)
+        const component = entity.components.get(ctor as any)
 
         if (component) {
           components.push(component)

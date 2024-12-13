@@ -1,6 +1,5 @@
-import { Entity } from "./entity"
-import { EventEmitter, EventsOf } from "./event-emitter"
-import { Scene, SceneUpdateEvent } from "./scene"
+import { AnyEntity, Entity } from "./entity"
+import { EventEmitter } from "./event-emitter"
 
 export abstract class Component<
   Events extends Record<string, unknown> = {}
@@ -8,6 +7,6 @@ export abstract class Component<
   static type: string
   entity?: Entity
 
-  onAdd?: (entity: Entity<any, any, any>) => void
-  onRemove?: (entity: Entity<any, any, any>) => void
+  onAdd?: (entity: AnyEntity) => void
+  onRemove?: (entity: AnyEntity) => void
 }

@@ -20,7 +20,7 @@ export class PhysicsSystem extends System<Query> {
         .sub(transform.prev.position)
         .mul(new Vec2(body.friction, body.friction))
 
-      if (body.gravity) {
+      if (body.gravity && !body.static) {
         velocity.y += 0.01 * dt * dt * 1000 * 1000
       }
 

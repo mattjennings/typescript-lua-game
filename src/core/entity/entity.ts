@@ -5,23 +5,25 @@ import { Scene, SceneUpdateEvent } from "../scene"
 import { Engine } from "../engine"
 
 export class Entity<
-  C extends Component<any> = Component,
-  P extends Record<string, any> = {},
-  E extends Record<string, unknown> = {}
+  Comp extends Component<any>[] = [],
+  Props extends Record<string, any> = {},
+  Events extends Record<string, unknown> = {},
+  Eng extends Engine = Engine
 > extends EventEmitter<
-  E & {
+  Events & {
     add: Scene
     remove: Scene
     destroy: undefined
   }
 > {
   name?: string = "Entity"
-  engine!: Engine
+  engine: Eng
   scene?: Scene
-  components = new LuaMap<Function, C>()
+  components = new LuaMap<ConstructorOf<Comp[number]>, Comp[number]>()
 
-  constructor(name?: string) {
+  constructor(engine: Eng, name?: string) {
     super()
+    this.engine = engine
     this.name = name
   }
 
@@ -62,14 +64,25 @@ export class Entity<
 
   set<Values extends Record<string, any>>(
     values: Values
-  ): Entity<C, P & Values, E> & P & Values
+  ): Entity<
+    [
+      ...Comp,
+      ...(Values[keyof Values] extends Component ? [Values[keyof Values]] : [])
+    ],
+    Props & Values,
+    Events,
+    Eng
+  > &
+    Props &
+    Values
   set<Name extends string, Value>(
     name: Name,
     value: Value
   ): Value extends Component
-    ? Entity<C | Value, P & { [K in Name]: Value }, E> &
-        P & { [K in Name]: Value }
-    : Entity<C, P & { [K in Name]: Value }, E> & P & { [K in Name]: Value }
+    ? Entity<[...Comp, Value], Props & { [K in Name]: Value }, Events, Eng> &
+        Props & { [K in Name]: Value }
+    : Entity<Comp, Props & { [K in Name]: Value }, Events, Eng> &
+        Props & { [K in Name]: Value }
 
   set(...args: [string, any] | [Record<string, any>]): any {
     if (typeof args[0] === "string") {
@@ -94,11 +107,26 @@ export class Entity<
     )
   }
 
+  self<
+    NewComp extends Component<any>[] = [],
+    NewProps extends Props = Props,
+    NewEvents extends Events = Events
+  >(
+    cb: (
+      entity: Entity<Comp, Props, Events, Eng> & Props
+    ) => Entity<[...Comp, ...NewComp], NewProps, NewEvents, Eng> & NewProps
+  ): ReturnType<typeof cb> {
+    return cb.call(this as any, this as any)
+  }
+
   addComponent<Value extends Component>(
-    component: Component
-  ): Entity<C | Value, P, E> & P {
+    component: Value
+  ): Entity<[...Comp, Value], Props, Events, Eng> & Props {
     component.entity = this as any
-    this.components.set(component.constructor, component as any)
+    this.components.set(
+      component.constructor as ConstructorOf<Comp[number]>,
+      component as any
+    )
     component.onAdd?.(this as any)
     return this as any
   }
@@ -106,7 +134,7 @@ export class Entity<
   getComponent<Name extends ConstructorOf<Component>>(
     ctor: Name
   ): InstanceType<Name> {
-    const componentInstance = this.components.get(ctor)
+    const componentInstance = this.components.get(ctor as any)
     if (!componentInstance) {
       throw new Error(`Component ${ctor.name} not found`)
     }
@@ -129,6 +157,14 @@ export class Entity<
       scene!.off(event as any, listener as any)
     })
     return this
+  }
+
+  onAdd(listener: (scene: Scene) => void): this {
+    return this.on("add", listener)
+  }
+
+  onDestroy(listener: () => void): this {
+    return this.on("destroy", listener)
   }
 
   onUpdate(listener: (ev: SceneUpdateEvent) => void): this {
@@ -167,7 +203,15 @@ export class Entity<
     return this.onSceneEvent("postdraw", listener)
   }
 
-  events<E extends Record<string, unknown>>(): Entity<C, P, E> {
+  events<E extends Record<string, unknown>>(): Entity<Comp, Props, E, Eng> {
     return this as any
   }
 }
+
+export type AnyEntity = Entity<any, any, any, any>
+export type EntityWithComponent<C extends Component[]> = Entity<
+  C,
+  any,
+  any,
+  any
+>

@@ -9,9 +9,7 @@ import type {
   Mesh,
   Quad,
   Shader,
-  Texture} from "love.graphics";
-import {
-  draw
+  Texture,
 } from "love.graphics"
 
 let _queue: Array<JSX.Element> = []

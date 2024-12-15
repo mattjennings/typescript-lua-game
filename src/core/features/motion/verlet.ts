@@ -1,17 +1,12 @@
-import type {
-  SystemQuery,
-  SystemUpdateFn} from "src/core/system";
-import {
-  System,
-  SystemEntities
-} from "src/core/system"
+import type { SystemQuery, SystemUpdateFn } from "src/core/system"
+import { System, SystemEntities } from "src/core/system"
 import { TransformComponent } from "./transform"
 import { BodyComponent } from "./body"
 import { Vec2 } from "../math"
 
 type Query = SystemQuery<[BodyComponent, TransformComponent]>
 
-export class PhysicsSystem extends System<Query> {
+export class VerletSystem extends System<Query> {
   query = [BodyComponent, TransformComponent] as const
   gravity = new Vec2(0, 0.01)
 

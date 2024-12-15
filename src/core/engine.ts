@@ -7,7 +7,7 @@ import { Entity } from "./entity"
 import type { Component } from "./component"
 import type { KeyConstant, Scancode } from "love.keyboard"
 import { AnimationSystem, GraphicsSystem } from "./features/graphics"
-import { PhysicsSystem, TransformSystem } from "./features/motion"
+import { VerletSystem, TransformSystem } from "./features/motion"
 import { ConstraintSystem } from "./features/motion/constraints"
 
 export interface EngineArgs<TSceneKey extends string> {
@@ -21,7 +21,7 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
   scenechange: { name: TSceneKey; scene: Scene }
 }> {
   static defaultSystems = [
-    new PhysicsSystem(),
+    new VerletSystem(),
     new ConstraintSystem(),
     new TransformSystem(),
     new AnimationSystem(),

@@ -3,9 +3,9 @@ import { TransformComponent } from "../motion"
 import type { Drawable, Quad } from "love.graphics"
 import { Component } from "src/core/component"
 
-import type { Vec2Like } from "../math";
+import type { Vec2Like } from "../math"
 import { Vec2 } from "../math"
-import type { SystemEntities, SystemQuery } from "src/core/system";
+import type { SystemEntities, SystemQuery } from "src/core/system"
 import { System } from "src/core/system"
 
 export class GraphicsComponent extends Component {

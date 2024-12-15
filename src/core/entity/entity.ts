@@ -1,6 +1,6 @@
 import type { ConstructorOf } from "src/types"
 import { Component } from "../component"
-import type { EventNameOf, EventsOf } from "../event-emitter";
+import type { EventNameOf, EventsOf } from "../event-emitter"
 import { EventEmitter } from "../event-emitter"
 import type { Scene, SceneUpdateEvent } from "../scene"
 import type { Engine } from "../engine"

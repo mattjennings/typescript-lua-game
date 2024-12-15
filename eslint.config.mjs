@@ -19,6 +19,7 @@ export default tseslint.config(
       // important for lua
       "@typescript-eslint/no-use-before-define": "error",
       "no-extra-boolean-cast": "off",
+      "@typescript-eslint/consistent-type-imports": "error",
     },
   }
 )

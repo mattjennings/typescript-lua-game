@@ -1,8 +1,9 @@
+import type {
+  SystemQuery,
+  SystemUpdateFn} from "src/core/system";
 import {
   System,
-  SystemEntities,
-  SystemQuery,
-  SystemUpdateFn,
+  SystemEntities
 } from "src/core/system"
 import { TransformComponent } from "./transform"
 import { BodyComponent } from "./body"

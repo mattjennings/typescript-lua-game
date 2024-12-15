@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import {
+import type {
   AlignMode,
   ColouredText,
   CompareMode,
-  draw,
   Drawable,
   DrawMode,
   Mesh,
   Quad,
   Shader,
-  Texture,
+  Texture} from "love.graphics";
+import {
+  draw
 } from "love.graphics"
 
 let _queue: Array<JSX.Element> = []

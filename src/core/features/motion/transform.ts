@@ -1,6 +1,8 @@
 import { Component } from "src/core/component"
-import { System, SystemEntities, SystemQuery } from "src/core/system"
-import { Vec2, Vec2Like } from "../math"
+import type { SystemEntities, SystemQuery } from "src/core/system";
+import { System } from "src/core/system"
+import type { Vec2Like } from "../math";
+import { Vec2 } from "../math"
 
 export interface Transform {
   position: Vec2

@@ -1,11 +1,11 @@
 import "./features/ui"
-import { ConstructorOf } from "src/types"
+import type { ConstructorOf } from "src/types"
 import { EventEmitter } from "./event-emitter"
 import { Scene } from "./scene"
-import { System } from "./system"
+import type { System } from "./system"
 import { Entity } from "./entity"
-import { Component } from "./component"
-import { KeyConstant, Scancode } from "love.keyboard"
+import type { Component } from "./component"
+import type { KeyConstant, Scancode } from "love.keyboard"
 
 export interface EngineArgs<TSceneKey extends string> {
   systems: System[]

@@ -1,9 +1,9 @@
-import { AnyEntity, Entity } from "./entity"
+import type { AnyEntity, Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
-import { System, SystemEntities, SystemQuery } from "./system"
+import type { System, SystemEntities, SystemQuery } from "./system"
 import { drawQueue } from "./features/ui/jsx"
-import { ConstructorOf } from "src/types"
-import { Engine } from "./engine"
+import type { ConstructorOf } from "src/types"
+import type { Engine } from "./engine"
 
 export type SceneUpdateEvent = { dt: number }
 

@@ -1,4 +1,4 @@
-import { Image, Quad } from "love.graphics"
+import type { Image, Quad } from "love.graphics"
 
 export class Spritesheet {
   image: Image

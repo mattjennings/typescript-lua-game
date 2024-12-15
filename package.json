@@ -4,7 +4,8 @@
   "scripts": {
     "build": "tstl",
     "dev": "tstl --watch & (sleep 2 && npm run start)",
-    "start": "love dist"
+    "start": "love dist",
+    "lint": "eslint src"
   },
   "keywords": [],
   "author": "",

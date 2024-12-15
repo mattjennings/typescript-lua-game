@@ -1,4 +1,4 @@
-import { AnyEntity, Entity } from "./entity"
+import type { AnyEntity, Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
 
 export abstract class Component<

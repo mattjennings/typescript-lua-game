@@ -1,8 +1,9 @@
-import { ConstructorOf } from "src/types"
+import type { ConstructorOf } from "src/types"
 import { Component } from "../component"
-import { EventEmitter, EventNameOf, EventsOf } from "../event-emitter"
-import { Scene, SceneUpdateEvent } from "../scene"
-import { Engine } from "../engine"
+import type { EventNameOf, EventsOf } from "../event-emitter";
+import { EventEmitter } from "../event-emitter"
+import type { Scene, SceneUpdateEvent } from "../scene"
+import type { Engine } from "../engine"
 
 export class Entity<
   Comp extends Component<any>[] = [],

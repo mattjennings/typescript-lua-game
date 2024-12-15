@@ -1,8 +1,8 @@
-import { ConstructorOf } from "src/types"
-import { Engine } from "../engine"
-import { Entity } from "../entity"
+import type { ConstructorOf } from "src/types"
+import type { Engine } from "../engine"
+import type { Entity } from "../entity"
 import { EventEmitter } from "../event-emitter"
-import { Component } from "../component"
+import type { Component } from "../component"
 
 export type SystemQuery<T extends Readonly<Component[]>> = Readonly<{
   [K in keyof T]: ConstructorOf<T[K]>

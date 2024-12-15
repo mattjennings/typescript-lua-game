@@ -1,8 +1,10 @@
 import { Component } from "src/core/component"
-import { System, SystemFixedUpdateFn, SystemQuery } from "src/core/system"
+import type { SystemFixedUpdateFn, SystemQuery } from "src/core/system";
+import { System } from "src/core/system"
 import { TransformComponent } from "./transform"
 import { BodyComponent } from "./body"
-import { Entity, EntityWithComponent } from "src/core/entity"
+import type { EntityWithComponent } from "src/core/entity";
+import { Entity } from "src/core/entity"
 import { Vec2 } from "../math"
 
 export class ConstraintsComponent extends Component {

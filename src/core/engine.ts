@@ -162,7 +162,7 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
     cb: (scene: Scene) => Scene
   ) {
     this.scenes[name] = () => {
-      const scene = new Scene(name)
+      const scene = new Scene(this, name)
       // @ts-ignore
       scene.systems = this.systems
       return cb(scene)

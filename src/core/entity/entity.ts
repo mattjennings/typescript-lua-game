@@ -128,6 +128,36 @@ export class Entity<
       component as any
     )
     component.onAdd?.(this as any)
+
+    // update the systems query
+    if (this.scene?.entities.all.has(this)) {
+      this.scene.entities.updateEntity(this)
+    }
+    return this as any
+  }
+
+  removeComponent<Name extends ConstructorOf<Component>>(
+    ctor: Name
+  ): Entity<
+    Comp extends Name ? (Comp extends [Name] ? [] : Comp) : Comp,
+    Props,
+    Events,
+    Eng
+  > &
+    Props {
+    const component = this.components.get(ctor as any)
+    if (!component) {
+      throw new Error(`Component ${ctor.name} not found`)
+    }
+
+    component.onRemove?.(this as any)
+    this.components.delete(ctor as any)
+
+    // update the systems query
+    if (this.scene?.entities.all.has(this)) {
+      this.scene.entities.updateEntity(this)
+    }
+
     return this as any
   }
 

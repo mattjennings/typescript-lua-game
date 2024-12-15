@@ -1,8 +1,11 @@
 import { AnyEntity, Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
-import { System, SystemEntities } from "./system"
+import { System, SystemEntities, SystemQuery } from "./system"
 import { drawQueue } from "./features/ui/jsx"
 import { ConstructorOf } from "src/types"
+import { Engine } from "./engine"
+
+export type SceneUpdateEvent = { dt: number }
 
 export class Scene extends EventEmitter<{
   start: void
@@ -19,53 +22,27 @@ export class Scene extends EventEmitter<{
   entityadd: Entity<any, any, any>
   entityremove: Entity<any, any, any>
 }> {
-  entities = new LuaSet<Entity<any, any, any>>()
+  engine: Engine<any>
   paused = false
   elapsedTime = 0
   name: string
 
-  protected systems: System[] = []
-  private entitiesBySystem = new LuaMap<
-    System,
-    SystemEntities<readonly ConstructorOf<any>[]>
-  >()
+  entities: EntityManager
 
-  constructor(name: string) {
+  constructor(engine: Engine<any>, name: string) {
     super()
 
     this.name = name
+    this.engine = engine
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    this.entities = new EntityManager(engine.systems)
   }
 
   addEntity<T extends AnyEntity>(entity: T) {
     entity.scene = this
+    this.entities.addEntity(entity)
     entity.emit("add", this)
     this.emit("entityadd", entity)
-
-    this.entities.add(entity)
-
-    for (const system of this.systems) {
-      if (!this.entitiesBySystem.has(system)) {
-        this.entitiesBySystem.set(system, new LuaMap())
-      }
-
-      let isForSystem = true
-      const components: any[] = []
-      for (const ctor of system.query) {
-        const component = entity.components.get(ctor as any)
-
-        if (component) {
-          components.push(component)
-        } else {
-          isForSystem = false
-          break
-        }
-      }
-
-      if (isForSystem) {
-        this.entitiesBySystem.get(system)!.set(entity, components)
-      }
-    }
-
     return entity
   }
 
@@ -76,17 +53,9 @@ export class Scene extends EventEmitter<{
       entity.destroy()
     }
 
+    this.entities.removeEntity(entity)
     this.emit("entityremove", entity)
     entity.emit("remove", this)
-    this.entities.delete(entity)
-
-    for (const system of this.systems) {
-      const entities = this.entitiesBySystem.get(system)!
-
-      if (entities.get(entity)) {
-        entities.delete(entity)
-      }
-    }
   }
 
   update(args: { dt: number }) {
@@ -99,8 +68,8 @@ export class Scene extends EventEmitter<{
     this.emit("update", args)
     this.elapsedTime += args.dt
 
-    for (const system of this.systems) {
-      system.update?.(this.entitiesBySystem.get(system)! ?? new LuaMap(), args)
+    for (const system of this.engine.systems) {
+      system.update?.(this.entities.byQuery.get(system.query)!, args)
     }
 
     this.emit("postupdate", args)
@@ -113,11 +82,8 @@ export class Scene extends EventEmitter<{
 
     this.emit("prefixedupdate", args)
     this.emit("fixedupdate", args)
-    for (const system of this.systems) {
-      system.fixedUpdate?.(
-        this.entitiesBySystem.get(system) ?? new LuaMap(),
-        args
-      )
+    for (const system of this.engine.systems) {
+      system.fixedUpdate?.(this.entities.byQuery.get(system.query)!, args)
     }
     this.emit("postfixedupdate", args)
   }
@@ -131,8 +97,8 @@ export class Scene extends EventEmitter<{
     this.drawElements()
 
     this.emit("draw", undefined)
-    for (const system of this.systems) {
-      system.draw?.(this.entitiesBySystem.get(system) ?? new LuaMap())
+    for (const system of this.engine.systems) {
+      system.draw?.(this.entities.byQuery.get(system.query)!)
     }
     this.drawElements()
 
@@ -199,4 +165,55 @@ export class Scene extends EventEmitter<{
   }
 }
 
-export type SceneUpdateEvent = { dt: number }
+class EntityManager {
+  all = new LuaSet<Entity<any, any, any>>()
+  byQuery = new LuaMap<
+    SystemQuery<any>,
+    SystemEntities<readonly ConstructorOf<any>[]>
+  >()
+  systems: System[] = []
+
+  constructor(systems: System[]) {
+    this.systems = systems
+
+    for (const system of systems) {
+      this.byQuery.set(system.query, new LuaMap())
+    }
+  }
+
+  addEntity(entity: Entity<any, any, any>) {
+    this.all.add(entity)
+    this.updateEntity(entity)
+  }
+
+  removeEntity(entity: Entity<any, any, any>) {
+    this.all.delete(entity)
+
+    for (const [query, entities] of this.byQuery) {
+      if (entities.get(entity)) {
+        entities.delete(entity)
+      }
+    }
+  }
+
+  updateEntity(entity: Entity<any, any, any>) {
+    for (const system of this.systems) {
+      let isForSystem = true
+      const components: any[] = []
+      for (const ctor of system.query) {
+        const component = entity.components.get(ctor as any)
+
+        if (component) {
+          components.push(component)
+        } else {
+          isForSystem = false
+          break
+        }
+      }
+
+      if (isForSystem) {
+        this.byQuery.get(system.query)!.set(entity, components)
+      }
+    }
+  }
+}

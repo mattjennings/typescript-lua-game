@@ -6,9 +6,12 @@ import type { System } from "./system"
 import { Entity } from "./entity"
 import type { Component } from "./component"
 import type { KeyConstant, Scancode } from "love.keyboard"
+import { AnimationSystem, GraphicsSystem } from "./features/graphics"
+import { PhysicsSystem, TransformSystem } from "./features/motion"
+import { ConstraintSystem } from "./features/motion/constraints"
 
 export interface EngineArgs<TSceneKey extends string> {
-  systems: System[]
+  systems?: System[]
 }
 
 export class Engine<TSceneKey extends string> extends EventEmitter<{
@@ -17,6 +20,14 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
   draw: void
   scenechange: { name: TSceneKey; scene: Scene }
 }> {
+  static defaultSystems = [
+    new PhysicsSystem(),
+    new ConstraintSystem(),
+    new TransformSystem(),
+    new AnimationSystem(),
+    new GraphicsSystem(),
+  ]
+
   systems: System[] = []
   scenes: Record<TSceneKey, () => Scene> = {} as any
   currentScene!: Scene
@@ -30,10 +41,12 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
   private debugStepMode = false
   private debugStep = false
 
-  constructor(args: EngineArgs<TSceneKey>) {
+  constructor(args: EngineArgs<TSceneKey> = {}) {
     super()
 
-    for (const system of args.systems) {
+    let systems = args.systems ?? Engine.defaultSystems
+
+    for (const system of systems) {
       this.addSystem(system)
     }
 

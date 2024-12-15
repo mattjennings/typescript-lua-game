@@ -1,4 +1,4 @@
-import { Component, Entity } from "src/core"
+import { Component } from "src/core/component"
 
 export interface StateDefinition<
   TState extends string,

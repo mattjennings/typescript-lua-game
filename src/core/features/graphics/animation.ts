@@ -1,9 +1,9 @@
 import type { Quad } from "love.graphics"
 import type { Spritesheet } from "./spritesheet"
-import type { Entity } from "src/core";
-import { Component } from "src/core"
+import type { Entity } from "src/core"
+import { Component } from "src/core/component"
 import { GraphicsComponent } from "./graphics"
-import type { SystemEntities, SystemQuery } from "src/core/system";
+import type { SystemEntities, SystemQuery } from "src/core/system"
 import { System } from "src/core/system"
 
 export interface AnimationDefinition {

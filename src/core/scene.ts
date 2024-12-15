@@ -1,4 +1,3 @@
-import { Engine } from "./engine"
 import { AnyEntity, Entity } from "./entity"
 import { EventEmitter } from "./event-emitter"
 import { System, SystemEntities } from "./system"
@@ -6,6 +5,8 @@ import { drawQueue } from "./features/ui/jsx"
 import { ConstructorOf } from "src/types"
 
 export class Scene extends EventEmitter<{
+  start: void
+  end: void
   preupdate: { dt: number }
   update: { dt: number }
   postupdate: { dt: number }
@@ -18,16 +19,22 @@ export class Scene extends EventEmitter<{
   entityadd: Entity<any, any, any>
   entityremove: Entity<any, any, any>
 }> {
-  engine!: Engine<any>
   entities = new LuaSet<Entity<any, any, any>>()
   paused = false
   elapsedTime = 0
+  name: string
 
   protected systems: System[] = []
   private entitiesBySystem = new LuaMap<
     System,
     SystemEntities<readonly ConstructorOf<any>[]>
   >()
+
+  constructor(name: string) {
+    super()
+
+    this.name = name
+  }
 
   addEntity<T extends AnyEntity>(entity: T) {
     entity.scene = this
@@ -147,7 +154,49 @@ export class Scene extends EventEmitter<{
     drawQueue.clear()
   }
 
-  onStart() {}
+  onStart(listener: () => void): this {
+    return this.on("start", listener)
+  }
+
+  onEnd(listener: () => void): this {
+    return this.on("end", listener)
+  }
+
+  onUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.on("update", listener)
+  }
+
+  onPreUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.on("preupdate", listener)
+  }
+
+  onPostUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.on("postupdate", listener)
+  }
+
+  onPreFixedUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.on("prefixedupdate", listener)
+  }
+
+  onFixedUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.on("fixedupdate", listener)
+  }
+
+  onPostFixedUpdate(listener: (ev: SceneUpdateEvent) => void): this {
+    return this.on("postfixedupdate", listener)
+  }
+
+  onDraw(listener: () => void): this {
+    return this.on("draw", listener)
+  }
+
+  onPreDraw(listener: () => void): this {
+    return this.on("predraw", listener)
+  }
+
+  onPostDraw(listener: () => void): this {
+    return this.on("postdraw", listener)
+  }
 }
 
 export type SceneUpdateEvent = { dt: number }

@@ -22,7 +22,7 @@ export class System<
   entityremoved: Entity
 }> {
   readonly query!: T
-  engine!: Engine
+  engine!: Engine<any>
 
   update?: (entities: any, event: UpdateEvent) => void
   fixedUpdate?: (entities: any, event: UpdateEvent) => void

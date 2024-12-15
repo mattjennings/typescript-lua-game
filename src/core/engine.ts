@@ -5,34 +5,20 @@ import { Scene } from "./scene"
 import { System } from "./system"
 import { Entity } from "./entity"
 import { Component } from "./component"
-import { system } from "love"
-import { pause } from "love.audio"
-import { draw } from "love.graphics"
 import { KeyConstant, Scancode } from "love.keyboard"
 
 export interface EngineArgs<TSceneKey extends string> {
   systems: System[]
-  types?: {
-    scenes?: TSceneKey
-  }
-}
-interface EngineDefinition<TSceneKey extends string> {
-  scenes?: TSceneKey
 }
 
-export type EngineScene<T> = T extends EngineDefinition<infer T> ? T : never
-
-export class Engine<
-  TSceneKey extends string = string,
-  TEngine extends EngineDefinition<TSceneKey> = EngineDefinition<TSceneKey>
-> extends EventEmitter<{
+export class Engine<TSceneKey extends string> extends EventEmitter<{
   update: { dt: number }
   fixedupdate: { dt: number }
   draw: void
-  scenechange: { name: EngineScene<TEngine>; scene: Scene }
+  scenechange: { name: TSceneKey; scene: Scene }
 }> {
   systems: System[] = []
-  scenes: Record<EngineScene<TEngine>, Scene> = {} as any
+  scenes: Record<TSceneKey, () => Scene> = {} as any
   currentScene!: Scene
 
   private accumulator = 0
@@ -85,7 +71,7 @@ export class Engine<
     }
   }
 
-  async start({ scene }: { scene: EngineScene<TEngine> }) {
+  async start({ scene }: { scene: TSceneKey }) {
     this.started = true
     this.gotoScene(scene)
   }
@@ -116,7 +102,7 @@ export class Engine<
 
   addSystem(system: System) {
     this.systems.push(system)
-    system.engine = this
+    system.engine = this as any
   }
 
   removeSystem(system: System) {
@@ -135,20 +121,18 @@ export class Engine<
     this.paused = false
   }
 
-  addScene(name: EngineScene<TEngine>, Scene: ConstructorOf<Scene>) {
-    this.scenes[name] = new Scene()
-  }
-
-  gotoScene(name: EngineScene<TEngine>) {
+  gotoScene(name: TSceneKey) {
     if (!this.scenes[name]) {
       throw new Error(`Scene "${name.toString()}" not found`)
     }
+
+    const scene = this.scenes[name]()
 
     if (!!this.currentScene) {
       this.currentScene.off("entityadd", this.onEntityAdd)
       this.currentScene.off("entityremove", this.onEntityRemove)
     }
-    this.currentScene = this.scenes[name]!
+    this.currentScene = scene
     this.currentScene.on("entityadd", this.onEntityAdd)
     this.currentScene.on("entityremove", this.onEntityRemove)
 
@@ -156,7 +140,7 @@ export class Engine<
       name: name,
       scene: this.currentScene,
     })
-    this.currentScene.onStart()
+    this.currentScene.emit("start", undefined)
   }
 
   protected onEntityAdd = () => {}
@@ -171,6 +155,18 @@ export class Engine<
     }
 
     return ctor
+  }
+
+  registerScene<Name extends TSceneKey>(
+    name: Name,
+    cb: (scene: Scene) => Scene
+  ) {
+    this.scenes[name] = () => {
+      const scene = new Scene(name)
+      // @ts-ignore
+      scene.systems = this.systems
+      return cb(scene)
+    }
   }
 
   createEntity<

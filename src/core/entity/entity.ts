@@ -8,7 +8,7 @@ export class Entity<
   Comp extends Component<any>[] = [],
   Props extends Record<string, any> = {},
   Events extends Record<string, unknown> = {},
-  Eng extends Engine = Engine
+  Eng extends Engine<any> = Engine<any>
 > extends EventEmitter<
   Events & {
     add: Scene

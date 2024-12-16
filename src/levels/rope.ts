@@ -5,6 +5,7 @@ import {
   RopeConstraint,
 } from "src/core/features/motion/constraints"
 import { engine } from "src/engine"
+import { BoxCollider } from "src/core/features/motion/collider"
 
 function createRope(args: {
   position: Vec2
@@ -24,7 +25,8 @@ function createRope(args: {
       segments: Array.from({ length: args.segments - 1 }, (_, i) => {
         return engine.createEntity(`rope-segment-${i}`).set({
           body: new BodyComponent({
-            friction: 0.1,
+            friction: new Vec2(0.9, 0.9),
+            collider: new BoxCollider({ width: 4, height: 4 }),
           }),
           transform: new TransformComponent({
             position: args.position
@@ -55,7 +57,7 @@ function createRope(args: {
           const mouse = love.mouse.getPosition()
 
           // rope.transform.position = new Vec2(mouse[0], mouse[1])
-          rope.segments[0].transform.position = new Vec2(mouse[0], mouse[1])
+          // rope.segments[4].transform.position = new Vec2(mouse[0], mouse[1])
         })
         .onDraw(() => {
           love.graphics.setColor(0, 1, 0)
@@ -111,7 +113,36 @@ engine.registerScene("rope", (scene) =>
     print("Rope scene started")
 
     scene.addEntity(
-      createRope({ position: new Vec2(400, 100), segments: 10, length: 300 })
+      createRope({ position: new Vec2(400, 100), segments: 25, length: 100 })
+    )
+
+    scene.addEntity(
+      engine
+        .createEntity("mouse")
+        .set({
+          transform: new TransformComponent({ position: new Vec2(0, 0) }),
+          body: new BodyComponent({
+            static: true,
+            collider: new BoxCollider({ width: 100, height: 25 }),
+          }),
+        })
+        .self((m) =>
+          m
+            .onFixedUpdate(() => {
+              const mouse = love.mouse.getPosition()
+              m.transform.position = new Vec2(mouse[0], mouse[1])
+            })
+            .onDraw(() => {
+              love.graphics.setColor(1, 1, 1)
+              love.graphics.rectangle(
+                "fill",
+                m.transform.position.x,
+                m.transform.position.y,
+                100,
+                25
+              )
+            })
+        )
     )
   })
 )

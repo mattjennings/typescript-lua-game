@@ -1,9 +1,9 @@
 import { Component } from "src/core/component"
-import type { SystemFixedUpdateFn, SystemQuery } from "src/core/system";
+import type { SystemFixedUpdateFn, SystemQuery } from "src/core/system"
 import { System } from "src/core/system"
 import { TransformComponent } from "./transform"
 import { BodyComponent } from "./body"
-import type { EntityWithComponent } from "src/core/entity";
+import type { EntityWithComponent } from "src/core/entity"
 import { Entity } from "src/core/entity"
 import { Vec2 } from "../math"
 
@@ -132,11 +132,11 @@ export class StickConstraint extends Constraint {
 }
 
 export class RopeConstraint extends Constraint {
-  iterations = 10
+  iterations = 3
   private constraints: Constraint[] = []
 
   constructor(
-    entities: EntityWithComponent<[TransformComponent, BodyComponent]>[],
+    entities: EntityWithComponent<[TransformComponent, BodyComponent<any>]>[],
     segmentLength: number
   ) {
     super()

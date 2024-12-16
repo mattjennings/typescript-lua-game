@@ -15,7 +15,7 @@ export class BodyComponent<
   static type = "body"
 
   gravity = true
-  friction = new Vec2(0.99, 0.99)
+  friction = new Vec2(0, 0)
   static = false
 
   collider?: C

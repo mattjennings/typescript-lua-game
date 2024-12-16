@@ -8,10 +8,13 @@ export interface Bounds {
 
 export abstract class Collider {
   id = uuid()
-  origin = new Vec2(0, 0)
+  offset = new Vec2(0, 0)
   abstract width: number
   abstract height: number
   abstract intersects(pSelf: Vec2, pOther: Vec2, cOther: Collider): boolean
+  get size(): Vec2 {
+    return new Vec2(this.width, this.height)
+  }
 }
 
 interface BoxColliderOptions {

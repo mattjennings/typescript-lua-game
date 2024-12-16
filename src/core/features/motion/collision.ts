@@ -69,38 +69,34 @@ export class CollisionSystem extends System<Query> {
     const bCollider = b.body.collider!
     const mtv = this.getMTV(
       a.transform.position,
-      aCollider,
+      new Vec2(aCollider.width, aCollider.height),
       b.transform.position,
-      bCollider
+      new Vec2(bCollider.width, bCollider.height)
     )
-    const direction = a.transform.position
-      .clone()
-      .sub(b.transform.position)
-      .normalize()
 
-    if (direction.dot(mtv) < 0) {
-      mtv.negate()
-    }
+    if (mtv) {
+      // Step 1: Detect collision (AABB check)
+      const posA = a.transform.position.clone().add(aCollider.offset)
+      const posB = b.transform.position.clone().add(bCollider.offset)
 
-    if (!a.body.static) {
-      a.transform.position.add(mtv.scale(b.body.static ? 1 : 0.5))
+      const overlapX =
+        posA.x < posB.x + bCollider.size.x && posA.x + aCollider.size.x > posB.x
+      const overlapY =
+        posA.y < posB.y + bCollider.size.y && posA.y + aCollider.size.y > posB.y
 
-      if (mtv.x !== 0) {
-        a.transform.prev.position.x = a.transform.position.x
-      }
-      if (mtv.y !== 0) {
-        a.transform.prev.position.y = a.transform.position.y
-      }
-    }
-    if (!b.body.static) {
-      b.transform.position.sub(mtv.scale(a.body.static ? 1 : 0.5))
-
-      if (mtv.x !== 0) {
-        b.transform.prev.position.x = b.transform.position.x
-      }
-
-      if (mtv.y !== 0) {
-        b.transform.prev.position.y = b.transform.position.y
+      if (overlapX && overlapY) {
+        // Step 2: Resolve collision
+        const mtv = this.getMTV(posA, aCollider.size, posB, bCollider.size)
+        if (mtv) {
+          if (a.body.static) {
+            b.transform.position.add(mtv)
+          } else if (b.body.static) {
+            a.transform.position.sub(mtv)
+          } else {
+            a.transform.position.sub(mtv.clone().scale(0.5))
+            b.transform.position.add(mtv.clone().scale(0.5))
+          }
+        }
       }
     }
   }
@@ -132,19 +128,19 @@ export class CollisionSystem extends System<Query> {
   //   throw new Error("Unsupported collider type")
   // }
 
-  getMTV(p1: Vec2, box1: BoxCollider, p2: Vec2, box2: BoxCollider) {
-    const min1 = new Vec2(p1.x, p1.y)
-    const max1 = new Vec2(p1.x + box1.width, p1.y + box1.height)
-    const min2 = new Vec2(p2.x, p2.y)
-    const max2 = new Vec2(p2.x + box2.width, p2.y + box2.height)
+  getMTV(posA: Vec2, sizeA: Vec2, posB: Vec2, sizeB: Vec2): Vec2 | null {
+    const dx = posB.x + sizeB.x / 2 - (posA.x + sizeA.x / 2)
+    const dy = posB.y + sizeB.y / 2 - (posA.y + sizeA.y / 2)
+    const overlapX = sizeA.x / 2 + sizeB.x / 2 - Math.abs(dx)
+    const overlapY = sizeA.y / 2 + sizeB.y / 2 - Math.abs(dy)
 
-    const x = Math.min(max1.x - min2.x, max2.x - min1.x)
-    const y = Math.min(max1.y - min2.y, max2.y - min1.y)
+    if (overlapX <= 0 || overlapY <= 0) return null // No collision
 
-    if (x < y) {
-      return new Vec2(x, 0)
+    // Minimum Translation Vector
+    if (overlapX < overlapY) {
+      return new Vec2(dx < 0 ? -overlapX : overlapX, 0)
     } else {
-      return new Vec2(0, y)
+      return new Vec2(0, dy < 0 ? -overlapY : overlapY)
     }
   }
 }

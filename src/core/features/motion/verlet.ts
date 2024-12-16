@@ -8,7 +8,7 @@ type Query = SystemQuery<[BodyComponent, TransformComponent]>
 
 export class VerletSystem extends System<Query> {
   query = [BodyComponent, TransformComponent] as const
-  gravity = new Vec2(0, 0.001)
+  gravity = new Vec2(0, 0.01)
   maxVelocity = new Vec2(100, 100)
 
   constructor({
@@ -52,10 +52,6 @@ export class VerletSystem extends System<Query> {
           const sign = Math.sign(velocity.y)
           velocity.y = Math.min(Math.abs(velocity.y), this.maxVelocity.y) * sign
         }
-      }
-
-      if (Math.abs(velocity.y) > 1) {
-        print(velocity.y)
       }
 
       transform.prev.position.set(transform.position.clone())

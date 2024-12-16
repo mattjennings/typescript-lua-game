@@ -16,6 +16,7 @@ function createBox(args: {
       transform: new TransformComponent({ position: args.position }),
       body: new BodyComponent({
         static: args.static,
+        friction: new Vec2(0.95, 0),
         // gravity: false,
         collider: new BoxCollider({ width: args.width, height: args.height }),
       }),

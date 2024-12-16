@@ -1,7 +1,7 @@
 import { Component } from "src/core/component"
-import type { SystemEntities, SystemQuery } from "src/core/system";
+import type { SystemEntities, SystemQuery } from "src/core/system"
 import { System } from "src/core/system"
-import type { Vec2Like } from "../math";
+import type { Vec2Like } from "../math"
 import { Vec2 } from "../math"
 
 export interface Transform {
@@ -41,21 +41,6 @@ export class TransformComponent extends Component implements Transform {
       position: this.position.clone(),
       rotation: this.rotation,
       scale: this.scale.clone(),
-    }
-  }
-}
-
-type Query = SystemQuery<[TransformComponent]>
-export class TransformSystem extends System<Query> {
-  query = [TransformComponent] as const
-
-  fixedUpdate = (entities: SystemEntities<Query>) => {
-    for (const [entity, [transform]] of entities) {
-      transform.prev = {
-        position: transform.position.clone(),
-        scale: transform.scale.clone(),
-        rotation: transform.rotation,
-      }
     }
   }
 }

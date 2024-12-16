@@ -5,18 +5,17 @@ import { EventEmitter } from "../event-emitter"
 import type { Scene, SceneUpdateEvent } from "../scene"
 import type { Engine } from "../engine"
 
+export type EntityEvents<E extends Record<string, unknown>> = E & {
+  add: Scene
+  remove: Scene
+  destroy: undefined
+}
 export class Entity<
   Comp extends Component<any>[] = [],
   Props extends Record<string, any> = {},
   Events extends Record<string, unknown> = {},
   Eng extends Engine<any> = Engine<any>
-> extends EventEmitter<
-  Events & {
-    add: Scene
-    remove: Scene
-    destroy: undefined
-  }
-> {
+> extends EventEmitter<EntityEvents<Events>> {
   name?: string = "Entity"
   engine: Eng
   scene?: Scene
@@ -170,6 +169,25 @@ export class Entity<
       throw new Error(`Component ${ctor.name} not found`)
     }
     return componentInstance as InstanceType<Name>
+  }
+
+  on<Emitter extends EventEmitter<any>>(
+    emitter: Emitter,
+    event: EventNameOf<Emitter>,
+    listener: (payload: EventsOf<Emitter>[EventNameOf<Emitter>]) => void
+  ): this
+
+  on<K extends keyof EntityEvents<Events>>(
+    event: K,
+    listener: (payload: EntityEvents<Events>[K]) => void
+  ): this
+  on(...args: any[]) {
+    if (args[0] instanceof EventEmitter) {
+      args[0].on(args[1], args[2])
+      return this
+    }
+
+    return super.on(args[0], args[1])
   }
 
   onSceneEvent<E extends EventNameOf<typeof this.scene>>(

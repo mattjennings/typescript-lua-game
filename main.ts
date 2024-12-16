@@ -8,7 +8,8 @@ lick.reset = true
 
 import { engine } from "./src/engine"
 import "src/levels/rope"
+import "src/levels/collision"
 
 love.load = () => {
-  engine.start({ scene: "rope" })
+  engine.start({ scene: "collision" })
 }

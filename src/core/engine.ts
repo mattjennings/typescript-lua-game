@@ -7,10 +7,12 @@ import { Entity } from "./entity"
 import type { Component } from "./component"
 import type { KeyConstant, Scancode } from "love.keyboard"
 import { AnimationSystem, GraphicsSystem } from "./features/graphics"
-import { VerletSystem, TransformSystem } from "./features/motion"
+import { VerletSystem } from "./features/motion"
 import { ConstraintSystem } from "./features/motion/constraints"
+import { CollisionSystem } from "./features/motion/collision"
 
 export interface EngineArgs<TSceneKey extends string> {
+  fixedUpdateFps?: number
   systems?: System[]
 }
 
@@ -22,8 +24,8 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
 }> {
   static defaultSystems = [
     new VerletSystem(),
+    new CollisionSystem(),
     new ConstraintSystem(),
-    new TransformSystem(),
     new AnimationSystem(),
     new GraphicsSystem(),
   ]
@@ -31,6 +33,7 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
   systems: System[] = []
   scenes: Record<TSceneKey, () => Scene> = {} as any
   currentScene!: Scene
+  fixedUpdateFps = 60
 
   private accumulator = 0
   elapsedTime = 0
@@ -45,6 +48,10 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
     super()
 
     let systems = args.systems ?? Engine.defaultSystems
+
+    if (args.fixedUpdateFps) {
+      this.fixedUpdateFps = args.fixedUpdateFps
+    }
 
     for (const system of systems) {
       this.addSystem(system)
@@ -99,7 +106,7 @@ export class Engine<TSceneKey extends string> extends EventEmitter<{
 
       while (this.accumulator > 0) {
         this.accumulator -= args.dt
-        const fixedDt = 1 / 60
+        const fixedDt = 1 / this.fixedUpdateFps
         this.emit("fixedupdate", { dt: fixedDt })
         this.currentScene.fixedUpdate({ dt: fixedDt })
       }

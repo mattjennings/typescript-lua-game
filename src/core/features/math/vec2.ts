@@ -70,6 +70,12 @@ export class Vec2 {
     return Math.sqrt(this.x * this.x + this.y * this.y)
   }
 
+  negate() {
+    this.x = -this.x
+    this.y = -this.y
+    return this
+  }
+
   normalize() {
     const len = this.length()
     if (len === 0) {
